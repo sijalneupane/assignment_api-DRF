@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'corsheaders',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,42 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #added by myself for using CustomUser for authentication
 AUTH_USER_MODEL = 'core.CustomUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Flutter web or emulator
+    "http://127.0.0.1:3000",  # Alternate localhost
+    "http://localhost:8000",  # DRF if accessed from browser
+    # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
+]
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-csrftoken',
+    
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.ngrok-free\.app$"]
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=365),
+    'SIGNING_KEY': SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    'TOKEN_OBTAIN_SERIALIZER': 'core.serializers.MyTokenObtainPairSerializer',
+}
