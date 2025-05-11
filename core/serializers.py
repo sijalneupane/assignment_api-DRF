@@ -1,8 +1,11 @@
-from rest_framework.serializers import Serializer
-from . import models
+from rest_framework.serializers import ModelSerializer
+from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-class CustomUserSerializer(Serializer.model):
+class CustomUserSerializer(ModelSerializer):
+    class Meta:
+        model=CustomUser
+        field=['id','username','email','name','gender','role','contact']
 # class AssignmentSerializer(Serializer.model):
 #     model=models.Assignment
 
