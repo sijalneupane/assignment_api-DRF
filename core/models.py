@@ -4,11 +4,17 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import BaseUserManager
 
 class CustomUserManager(BaseUserManager):
-    use_in_migrations = True
+    # use_in_migrations = True
 
     def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:
             raise ValueError('The username must be set')
+        if not email:
+            raise ValueError('The email must be set')
+        if not password:
+            raise ValueError('The password must be set')
+        if not extra_fields:
+            raise ValueError('Extra fields must be provided')
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
@@ -27,8 +33,12 @@ class CustomUserManager(BaseUserManager):
 # Create your models here.
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (('student','Student'), ('admin','Admin'), ('teacher','Teacher'))
+    GENDER_CHOICES = (('male','Male'), ('female','Female'), ('others','Others'))
+    name= models.CharField(max_length=250,null=True, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-
+    gender = models.CharField(max_length=10,choices=GENDER_CHOICES,null=True, blank=True)
+    contact = models.CharField(max_length=10,null=True, blank=True)
+    
     # fix reverse accessor clash if needed (you already have)
     groups = models.ManyToManyField(
         'auth.Group',
@@ -63,7 +73,11 @@ class Subject(models.Model):
 class Assignment(models.Model):
     title=models.CharField(max_length=250)
     description=models.TextField()
+    subject=models.ForeignKey(Subject,on_delete=models.CASCADE, blank=False,null=False)
+    teacher=models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role__in': ['admin', 'teacher']}, default=0)
     deadline=models.DateTimeField()
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
