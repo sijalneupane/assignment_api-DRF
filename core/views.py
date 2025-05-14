@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status,permissions
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from core.serializers import AssignmentCreateSerializer, AssignmentSerializer, CustomUserSerializer,LoginSerializer
+# , SubjectCreateSerializer, SubjectSerializer
 from .models import CustomUser,Assignment, Subject
 from django.contrib.auth.hashers import check_password,make_password
 # from rest_framework.generics import CreateAPIView
@@ -85,3 +86,117 @@ class GetAssignmentView(APIView):
         assignments = Assignment.objects.all()
         serializer = AssignmentSerializer(assignments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GetAssignmentByIdView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, id):
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            assignment = Assignment.objects.get(id=id)
+            
+            serializer = AssignmentSerializer(assignment)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class UpdateAssignmentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def put(self, request, id):
+        if not TeacherPermission().has_permission(request, self):
+            return Response({"error": "Only teachers and admins can update assignments"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            data = request.data.copy()
+            data['subject']=Subject.objects.get(name=data['subject']).id
+            data['teacher'] = request.user.id
+            assignment = Assignment.objects.get(id=id)
+            serializer = AssignmentCreateSerializer(assignment, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Assignment updated successfully"}, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Assignment.DoesNotExist:
+            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+class DeleteAssignmentByIdView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request, id):
+        if not TeacherPermission().has_permission(request, self):
+            return Response({"error": "Only teachers and admins can delete assignments"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            assignment = Assignment.objects.get(id=id)
+            assignment.delete()
+            return Response({"message": "Assignment deleted successfully"}, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# class SubjectCreateView(APIView):
+#     permission_classes=[permissions.IsAuthenticated]
+#     def post(self,request):
+#         if not TeacherPermission().has_permission(request, self):
+#             return Response({"error": "Only teachers and admins can delete assignments"}, status=status.HTTP_403_FORBIDDEN)
+        
+#         data=request.data.copy()
+#         data['teached_by']=CustomUser.objects.get(name=data['teached_by']).id
+#         serializer=SubjectCreateSerializer(data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message":"Subject Added Successfully"},status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class GetSubjectView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     def get(self, request):
+#         if not request.user.is_authenticated:
+#             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+#         assignments = Assignment.objects.all()
+#         serializer = AssignmentSerializer(assignments, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# class GetSubjectByIdView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     def get(self, request, id):
+#         if not request.user.is_authenticated:
+#             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+#         try:
+#             subject = Subject.objects.get(id=id)
+#             serializer = SubjectSerializer(subject)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Subject.DoesNotExist:
+#             return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# class UpdateSubjectView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     def put(self, request, id):
+#         if not TeacherPermission().has_permission(request, self):
+#             return Response({"error": "Only teachers and admins can update Subject"}, status=status.HTTP_403_FORBIDDEN)
+        
+#         try:
+#             data = request.data.copy()
+#             data['subject']=Subject.objects.get(name=data['subject']).id
+#             data['teacher'] = request.user.id
+#             assignment = Assignment.objects.get(id=id)
+#             serializer = AssignmentCreateSerializer(assignment, data=data, partial=True)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response({"message": "Assignment updated successfully"}, status=status.HTTP_200_OK)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Assignment.DoesNotExist:
+#             return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# class DeleteSubjectByIdView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     def delete(self, request, id):
+#         if not TeacherPermission().has_permission(request, self):
+#             return Response({"error": "Only teachers and admins can delete Subject"}, status=status.HTTP_403_FORBIDDEN)
+        
+#         try:
+#             assignment = Assignment.objects.get(id=id)
+#             assignment.delete()
+#             return Response({"message": "Subject deleted successfully"}, status=status.HTTP_200_OK)
+#         except Assignment.DoesNotExist:
+#             return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)

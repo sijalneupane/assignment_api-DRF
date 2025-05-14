@@ -1,6 +1,6 @@
 from rest_framework import serializers 
 from rest_framework.exceptions import ValidationError
-from .models import CustomUser, Assignment
+from .models import CustomUser, Assignment, Subject
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
 
@@ -60,11 +60,41 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         
         return attrs
 
+class SubjectNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['id', 'name']
+
+class TeacherNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'name']
+
 class AssignmentSerializer(serializers.ModelSerializer):
+    subject = SubjectNestedSerializer(read_only=True)
+    teacher = TeacherNestedSerializer(read_only=True)
+
     class Meta:
         model = Assignment
-        fields = ['id', 'title', 'description', 'subject', 'deadline', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'description', 'subject', 'teacher', 'deadline', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']  # These fields are read-only as they are auto-set
+
+# class SubjectCreateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model=Subject
+#         fields=['id','name','course_code','faculty','teached_by']
+#         def validate(self,attrs):
+#             required_fields=['name','course_code','faculty','teached_by']
+#             missing_fields=[field for field in required_fields if field not in attrs]
+#             if missing_fields:
+#                 raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
+#             return attrs
+        
+# class SubjectSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model=Subject
+#         fields=['id','name','course_code','faculty','teached_by']
+#         read_only_fields = ['id']  # This field is read-only as it is auto-generated
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
