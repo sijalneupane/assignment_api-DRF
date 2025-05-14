@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status,permissions
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from core.serializers import AssignmentCreateSerializer, AssignmentSerializer, CustomUserSerializer,LoginSerializer
 from .models import CustomUser,Assignment, Subject
 from django.contrib.auth.hashers import check_password,make_password
@@ -32,11 +32,21 @@ class LoginView(APIView):
             try:
                 user = CustomUser.objects.get(email=email)
                 if check_password(password, user.password):
-                    token = AccessToken()
-                    token['id'] = user.id
-                    token['email'] = user.email
-                    token['role'] = user.role
-                    return Response({"token": str(token), "message": "Login Success"}, status=status.HTTP_200_OK)
+                    # Use RefreshToken instead of AccessToken for better handling
+                    # refresh = RefreshToken.for_user(user)
+                    access=AccessToken.for_user(user)
+                    
+                    # Add custom claims to the token
+                    # refresh['email'] = user.email
+                    # refresh['role'] = user.role
+                    access['email'] = user.email
+                    access['role'] = user.role
+                    
+                    return Response({
+                        # "refresh": str(refresh),
+                        "token_access": str(access),
+                        "message": "Login Success"
+                    }, status=status.HTTP_200_OK)
                 return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
             except CustomUser.DoesNotExist:
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -45,11 +55,12 @@ class LoginView(APIView):
 class TeacherPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
+            print("User is not authenticated , ${request.user.is_authenticated}")
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED) and False
         token = request.auth
         return token and token.get('role') in ['teacher', 'admin']
     
-class AssignmentView(APIView):
+class AddAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -65,6 +76,8 @@ class AssignmentView(APIView):
             return Response({"message": "Assignment added successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class GetAssignmentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def get(self, request):
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)

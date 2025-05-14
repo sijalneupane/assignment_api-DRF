@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'core',
     'corsheaders',
-    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -166,8 +166,10 @@ CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.ngrok-free\.app$"]
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=365),
-    'SIGNING_KEY': SECRET_KEY,
-    "AUTH_HEADER_TYPES": ("Bearer",),
     'TOKEN_OBTAIN_SERIALIZER': 'core.serializers.MyTokenObtainPairSerializer',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'SIGNING_KEY': SECRET_KEY,
+    'ALGORITHM': 'HS256',
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
