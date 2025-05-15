@@ -9,8 +9,10 @@
 #   "deadline": "2024-12-15T23:59:00Z"
 # }
 
-POST http://localhost:8000/login/
-{
-  "email": "sijal@gmail.com",
-  "password": "password321@" 
-}
+# POST http://localhost:8000/login/
+# {
+#   "email": "sijal@gmail.com",
+#   "password": "password321@" 
+# }
+GET http://localhost:8000/getAssignment/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ3MzEwOTk5LCJpYXQiOjE3NDczMDczOTksImp0aSI6ImMxYjllN2I0Y2FhODQ0ODNiNDJmZjhiNjA5Njg2MWZkIiwidXNlcl9pZCI6NiwiZW1haWwiOiJzaWphbEBnbWFpbC5jb20iLCJyb2xlIjoidGVhY2hlciJ9.UdjXb9kqxrypww2lrWTHF4U-h8YrA9h1w_whB-S5fpo

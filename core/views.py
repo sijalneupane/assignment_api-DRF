@@ -69,7 +69,7 @@ class AddAssignmentView(APIView):
             return Response({"error": "Only teachers and admins can add assignments"}, status=status.HTTP_403_FORBIDDEN)
         
         data = request.data.copy()
-        data['subject']=Subject.objects.get(name=data['subject']).id
+        data['subject']=Subject.objects.get(name=data['subject_id']).id
         data['teacher'] = request.user.id
         serializer = AssignmentCreateSerializer(data=data)
         if serializer.is_valid():
@@ -93,13 +93,23 @@ class GetAssignmentByIdView(APIView):
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        try:
-            assignment = Assignment.objects.get(id=id)
-            
-            serializer = AssignmentSerializer(assignment)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Assignment.DoesNotExist:
-            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        # try:
+        assignment = Assignment.objects.get(id=id)
+        subject = Subject.objects.get(id=assignment.subject_id.id)
+        teacher = CustomUser.objects.get(id=assignment.teacher_id.id)
+        serializer = AssignmentSerializer(assignment)
+        data = serializer.data
+        data['subject'] = subject.name
+        data['teacher'] = teacher.name  # or teacher.name if you prefer
+        return Response(data, status=status.HTTP_200_OK)
+        # except Assignment.DoesNotExist:
+        #     return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        # except Subject.DoesNotExist:
+        #     return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
+        # except CustomUser.DoesNotExist:
+        #     return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class UpdateAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -119,6 +129,11 @@ class UpdateAssignmentView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Assignment.DoesNotExist:
             return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Subject.DoesNotExist:
+            return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "Teacher or admin not found"}, status=status.HTTP_404_NOT_FOUND)
+
 class DeleteAssignmentByIdView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def delete(self, request, id):

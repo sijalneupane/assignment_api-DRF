@@ -60,19 +60,9 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         
         return attrs
 
-class SubjectNestedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subject
-        fields = ['id', 'name']
 
-class TeacherNestedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'name']
 
 class AssignmentSerializer(serializers.ModelSerializer):
-    subject = SubjectNestedSerializer(read_only=True)
-    teacher = TeacherNestedSerializer(read_only=True)
 
     class Meta:
         model = Assignment

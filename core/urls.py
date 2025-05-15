@@ -1,5 +1,9 @@
 from django.urls import  path
 from . import views
+
+# from rest_framework import routers
+# router=routers.SimpleRouter()
+
 urlpatterns = [
     path('createUser/',views.CrerateUser.as_view()),
     path('login/',views.LoginView.as_view()),

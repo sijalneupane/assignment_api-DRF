@@ -10,6 +10,7 @@ class Command(BaseCreateSuperUserCommand):
         try:
             user = CustomUser.objects.get(username=username)
             user.role = 'admin'
+            user.name=username
             user.save()
             self.stdout.write(self.style.SUCCESS(f"Superuser '{username}' created with role='admin'"))
         except CustomUser.DoesNotExist:

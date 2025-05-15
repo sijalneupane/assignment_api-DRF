@@ -58,7 +58,7 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()  # ✅ Use your custom manager
 
     def __str__(self):
-        return self.username
+        return self.name
 
 class Subject(models.Model):
     FACULTY_CHOICES=[('bca','BCA'),('bim','BIM'),('csit','CSIT')]
