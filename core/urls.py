@@ -5,7 +5,7 @@ from . import views
 # router=routers.SimpleRouter()
 
 urlpatterns = [
-    path('createUser/',views.CrerateUser.as_view()),
+    path('register/',views.CrerateUser.as_view()),
     path('login/',views.LoginView.as_view()),
     path('addAssignment/',views.AddAssignmentView.as_view()),
     path('getAssignment/',views.GetAssignmentView.as_view()),

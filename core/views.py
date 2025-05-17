@@ -85,7 +85,15 @@ class GetAssignmentView(APIView):
         
         assignments = Assignment.objects.all()
         serializer = AssignmentSerializer(assignments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = []
+        for assignment, assignment_data in zip(assignments, serializer.data):
+            subject = Subject.objects.get(id=assignment.subject.id)
+            teacher = CustomUser.objects.get(id=assignment.teacher.id)
+            assignment_data = dict(assignment_data)
+            assignment_data['subject'] = subject.name
+            assignment_data['teacher'] = teacher.name
+            data.append(assignment_data)
+        return Response(data, status=status.HTTP_200_OK)
 
 class GetAssignmentByIdView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -114,7 +122,7 @@ class GetAssignmentByIdView(APIView):
 class UpdateAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def put(self, request, id):
-        if not TeacherPermission().has_permission(request, self):
+        if not TeacherPermission().has_permission(request, self): 
             return Response({"error": "Only teachers and admins can update assignments"}, status=status.HTTP_403_FORBIDDEN)
         
         try:
