@@ -167,8 +167,8 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
     'TOKEN_OBTAIN_SERIALIZER': 'core.serializers.MyTokenObtainPairSerializer',
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=365),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1000),
     'SIGNING_KEY': SECRET_KEY,
     'ALGORITHM': 'HS256',
     "AUTH_HEADER_TYPES": ("Bearer",),

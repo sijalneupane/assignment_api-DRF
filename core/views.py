@@ -45,8 +45,9 @@ class LoginView(APIView):
                     
                     return Response({
                         # "refresh": str(refresh),
-                        "token_access": str(access),
-                        "message": "Login Success"
+                        "token": str(access),
+                        "message": "Login Success",
+                        "role":access.get('role')
                     }, status=status.HTTP_200_OK)
                 return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
             except CustomUser.DoesNotExist:
@@ -69,8 +70,14 @@ class AddAssignmentView(APIView):
             return Response({"error": "Only teachers and admins can add assignments"}, status=status.HTTP_403_FORBIDDEN)
         
         data = request.data.copy()
-        data['subject']=Subject.objects.get(name=data['subject_id']).id
-        data['teacher'] = request.user.id
+        try:
+            data['subject']=Subject.objects.get(name=data['subjectName']).id
+        except Subject.DoesNotExist:
+            return Response({"error":"SUbject does not exist"},status=status.HTTP_404_NOT_FOUND)
+        try:
+            data['teacher'] = request.user.id
+        except CustomUser.DoesNotExist:
+            return Response({"error":"Teacher does not exist"},status=status.HTTP_404_NOT_FOUND)
         serializer = AssignmentCreateSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -83,14 +90,20 @@ class GetAssignmentView(APIView):
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        assignments = Assignment.objects.all()
+        assignments = Assignment.objects.all().order_by("id")
         serializer = AssignmentSerializer(assignments, many=True)
         data = []
         for assignment, assignment_data in zip(assignments, serializer.data):
-            subject = Subject.objects.get(id=assignment.subject.id)
-            teacher = CustomUser.objects.get(id=assignment.teacher.id)
+            try:
+                subject = Subject.objects.get(id=assignment.subject.id)
+            except Subject.DoesNotExist:
+                return Response({"error": "Subject Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                teacher = CustomUser.objects.get(id=assignment.teacher.id)
+            except CustomUser.DoesNotExist:
+                return Response({"error": "Teacher Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
             assignment_data = dict(assignment_data)
-            assignment_data['subject'] = subject.name
+            assignment_data['subjectName'] = subject.name
             assignment_data['teacher'] = teacher.name
             data.append(assignment_data)
         return Response(data, status=status.HTTP_200_OK)
@@ -127,7 +140,7 @@ class UpdateAssignmentView(APIView):
         
         try:
             data = request.data.copy()
-            data['subject']=Subject.objects.get(name=data['subject']).id
+            data['subject']=Subject.objects.get(name=data['subjectName']).id
             data['teacher'] = request.user.id
             assignment = Assignment.objects.get(id=id)
             serializer = AssignmentCreateSerializer(assignment, data=data, partial=True)
