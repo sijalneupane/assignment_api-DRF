@@ -48,11 +48,11 @@ class LoginSerializer(serializers.Serializer):
 class AssignmentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ['id', 'title', 'description', 'subject', 'deadline','teacher']
+        fields = ['id', 'title', 'description', 'subject', 'deadline','teacher','semester','faculty']
         
     def validate(self, attrs):
         # Ensure all required fields are present
-        required_fields = ['title', 'description', 'subject', 'deadline']
+        required_fields = ['title', 'description', 'subject','semester','faculty']
         missing_fields = [field for field in required_fields if field not in attrs]
         
         if missing_fields:
@@ -66,8 +66,8 @@ class AssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Assignment
-        fields = ['id', 'title', 'description', 'subject', 'teacher', 'deadline', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']  # These fields are read-only as they are auto-set
+        fields = ['id', 'title', 'description', 'subject', 'teacher', 'deadline','faculty','semester']
+        # read_only_fields = ['created_at', 'updated_at']  # These fields are read-only as they are auto-set
 
 # class SubjectCreateSerializer(serializers.ModelSerializer):
 #     class Meta:
