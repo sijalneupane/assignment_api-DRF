@@ -9,7 +9,7 @@ from .models import CustomUser
 from django.contrib.auth.hashers import check_password,make_password
 # from rest_framework.generics import CreateAPIView
 # Create your views here.
-
+from drf_spectacular.utils import extend_schema, OpenApiExample
 from assignments.views import register_device_token
 
 class ShowMsg(APIView):
@@ -17,6 +17,48 @@ class ShowMsg(APIView):
         return Response(data={'message':'hellooo world !'})
 
 class CrerateUser(APIView):
+    @extend_schema(
+        summary="Register new user",
+        description="Create a new user account with the provided information",
+        request=CustomUserSerializer,
+        responses={
+            201: {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "User registered successfully"
+                    }
+                }
+            },
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Validation errors"
+                    }
+                }
+            }
+        },
+        examples=[
+            OpenApiExample(
+                'Create User Example',
+                summary='Create a new user',
+                description='Example request body for user creation',
+                value={
+                    "email": "science.queen@outlook.com",
+                    "username": "bioExplorer",
+                    "password": "m1toch0ndria!",
+                    "name": "Dr. Ellen Wright",
+                    "gender": "female",
+                    "role": "teacher",
+                    "contact": "6429183750"
+                }, # Adjust fields based on your CustomUserSerializer
+                request_only=True,
+            )
+        ],
+    )
     def post(self, request):
         serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
@@ -27,6 +69,71 @@ class CrerateUser(APIView):
     # serializer_class=CustomUserSerializer
 
 class LoginView(APIView):
+    @extend_schema(
+        summary="User login",
+        description="Authenticate user and return access token",
+        request=LoginSerializer,
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Login Success"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "student"
+                    }
+                }
+            },
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Validation errors"
+                    }
+                }
+            },
+            401: {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Invalid password"
+                    }
+                }
+            },
+            404: {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "User not found"
+                    }
+                }
+            }
+        },
+        examples=[
+            OpenApiExample(
+                'Login Example',
+                summary='User login request',
+                description='Example request body for user login',
+                value={
+                    'email': 'user@example.com',
+                    'password': 'securePassword123',
+                    'deviceToken': 'device_fcm_token_here'
+                },
+                request_only=True,
+            )
+        ],
+        tags=['Authentication']
+    )
     def post(self, request) :
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():

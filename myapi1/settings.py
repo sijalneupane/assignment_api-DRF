@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'assignments',
     'fcm_django',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -139,9 +140,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your API',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Flutter web or emulator
     "http://127.0.0.1:3000",  # Alternate localhost
