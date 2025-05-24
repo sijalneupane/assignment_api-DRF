@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'core',
     'corsheaders',
+    'assignments',
+    'fcm_django',
 ]
 
 MIDDLEWARE = [
@@ -172,4 +174,33 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'ALGORITHM': 'HS256',
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+
+import os
+from firebase_admin import initialize_app, credentials
+from google.auth import load_credentials_from_file
+from google.oauth2.service_account import Credentials
+
+# Custom credentials class for Firebase
+class CustomFirebaseCredentials(credentials.ApplicationDefault):
+    def __init__(self, account_file_path: str):
+        super().__init__()
+        self._account_file_path = account_file_path
+
+    def _load_credential(self):
+        if not self._g_credential:
+            self._g_credential, self._project_id = load_credentials_from_file(
+                self._account_file_path, scopes=credentials._scopes
+            )
+
+# Initialize Firebase
+custom_credentials = CustomFirebaseCredentials(os.getenv('CUSTOM_GOOGLE_APPLICATION_CREDENTIALS'))
+FIREBASE_MESSAGING_APP = initialize_app(custom_credentials, name='messaging')
+# FCM Django settings
+FCM_DJANGO_SETTINGS = {
+    "DEFAULT_FIREBASE_APP": FIREBASE_MESSAGING_APP,
+    "APP_VERBOSE_NAME": "FCM Notifications",
+    "ONE_DEVICE_PER_USER": False,
+    "DELETE_INACTIVE_DEVICES": False,
 }
