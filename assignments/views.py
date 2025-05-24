@@ -9,6 +9,7 @@ from .models import Assignment,Subject
 from core.models import CustomUser
 from .serializers import AssignmentCreateSerializer,AssignmentSerializer
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 # Create your views here.
 # Initialize Firebase app (ensure this runs only once)
 # if not firebase_admin._apps:
@@ -80,7 +81,33 @@ class TeacherPermission(permissions.BasePermission):
     
 class AddAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
+    @extend_schema(
+        summary="Create new assignment",
+        description="Add a new assignment. Only teachers and admins can create assignments.",
+        request=AssignmentCreateSerializer,
+        responses={
+            201: AssignmentSerializer,
+            400: "Validation errors",
+            403: "Permission denied - Only teachers and admins can add assignments",
+            404: "Subject or teacher not found"
+        },
+        examples=[
+            OpenApiExample(
+                'Assignment Creation Example',
+                summary='Create assignment request',
+                description='Example request body for creating a new assignment',
+                value={
+                    "title": "Computer Network",
+                    "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
+                    "subjectName": "Computer Network",
+                    "semester":"First Semester",
+                    "faculty":"BCA"
+                },
+                request_only=True,
+            )
+        ],
+        tags=['Assignments']
+    )
     def post(self, request):
         if not TeacherPermission().has_permission(request, self):
             return Response({"error": "Only teachers and admins can add assignments"}, status=status.HTTP_403_FORBIDDEN)
@@ -126,6 +153,25 @@ class GetAssignmentView(APIView):
 
 class GetAssignmentByIdView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    @extend_schema(
+        summary="Get assignment by ID",
+        description="Retrieve a specific assignment by its ID with subject and teacher details",
+        responses={
+            200: AssignmentSerializer,
+            401: "Authentication required",
+            404: "Assignment, subject, or teacher not found"
+        },
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                description='Assignment ID',
+                required=True,
+                type=int,
+                location=OpenApiParameter.PATH
+            ),
+        ],
+        tags=['Assignments']
+    )
     def get(self, request, id):
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -150,6 +196,42 @@ class GetAssignmentByIdView(APIView):
         
 class UpdateAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    @extend_schema(
+        summary="Update assignment",
+        description="Update an existing assignment. Only teachers and admins can update assignments.",
+        request=AssignmentCreateSerializer,
+        responses={
+            200: AssignmentSerializer,
+            400: "Validation errors",
+            403: "Permission denied - Only teachers and admins can update assignments",
+            404: "Assignment, subject, or teacher not found"
+        },
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                description='Assignment ID to update',
+                required=True,
+                type=int,
+                location=OpenApiParameter.PATH
+            ),
+        ],
+        examples=[
+            OpenApiExample(
+                'Assignment Update Example',
+                summary='Update assignment request',
+                description='Example request body for updating an assignment',
+                value={
+                    "title": "Computer Network",
+                    "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
+                    "subjectName": "Computer Network",
+                    "semester":"First Semester",
+                    "faculty":"BCA"
+                },
+                request_only=True,
+            )
+        ],
+        tags=['Assignments']
+    )
     def put(self, request, id):
         if not TeacherPermission().has_permission(request, self): 
             return Response({"error": "Only teachers and admins can update assignments"}, status=status.HTTP_403_FORBIDDEN)
