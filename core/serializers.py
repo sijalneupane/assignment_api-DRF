@@ -1,8 +1,8 @@
 from rest_framework import serializers 
 from rest_framework.exceptions import ValidationError
-from .models import CustomUser, Assignment, Subject
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
+from core.models import CustomUser
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -33,58 +33,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return user
 
 class LoginSerializer(serializers.Serializer):
+    deviceToken = serializers.CharField(required=False, allow_blank=True)
     email = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
 
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
+        deviceToken=attrs.get("deviceToken")
 
-        if not email or not password:
-            raise serializers.ValidationError("Both email and password are required.")
+        if not email or not password or not deviceToken:
+            raise serializers.ValidationError("Both email and password and device token are required.")
 
         return attrs
-
-class AssignmentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Assignment
-        fields = ['id', 'title', 'description', 'subject', 'deadline','teacher','semester','faculty']
-        
-    def validate(self, attrs):
-        # Ensure all required fields are present
-        required_fields = ['title', 'description', 'subject','semester','faculty']
-        missing_fields = [field for field in required_fields if field not in attrs]
-        
-        if missing_fields:
-            raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
-        
-        return attrs
-
-
-
-class AssignmentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Assignment
-        fields = ['id', 'title', 'description', 'subject', 'teacher', 'deadline','faculty','semester']
-        # read_only_fields = ['created_at', 'updated_at']  # These fields are read-only as they are auto-set
-
-# class SubjectCreateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model=Subject
-#         fields=['id','name','course_code','faculty','teached_by']
-#         def validate(self,attrs):
-#             required_fields=['name','course_code','faculty','teached_by']
-#             missing_fields=[field for field in required_fields if field not in attrs]
-#             if missing_fields:
-#                 raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
-#             return attrs
-        
-# class SubjectSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model=Subject
-#         fields=['id','name','course_code','faculty','teached_by']
-#         read_only_fields = ['id']  # This field is read-only as it is auto-generated
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
