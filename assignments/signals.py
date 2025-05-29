@@ -19,20 +19,21 @@ def notify_assignment_created(sender, instance, created, **kwargs):
         #     user__subject=subject
         # )
         devices = CustomDevice.objects.all()
-        for device in devices:
-            device.send_message(
-                 Message(
-                        notification=Notification(title="📘 New Assignment", body=f"{instance.title} ({subject}) has been added for {faculty}, Semester {semester}. Due on {instance.deadline.strftime('%Y-%m-%d')}"),
-                        data={
-                            "assignment_id": str(instance.id),
-                            "faculty": str(faculty),
-                            "semester": str(semester),
-                            "subject": str(subject)
-                        }
-                    )
-                # message=f"Assignment '{instance.title}' for {subject} ({faculty}, Semester {semester}) is now available. Deadline: {instance.deadline.strftime('%Y-%m-%d')}",
-                
-            )
+        # for device in devices:
+        devices.send_message(
+                Message(
+                    notification=Notification(title="📘 New Assignment", body=f"{instance.title} ({subject}) has been added for {faculty}, Semester {semester}. Due on {instance.deadline.strftime('%Y-%m-%d')}"),
+                    data={
+                        "assignment_id": str(instance.id),
+                        "faculty": str(faculty),
+                        "semester": str(semester),
+                        "subject": str(subject),
+                        "route":"/getAssignment"
+                    }
+                )
+            # message=f"Assignment '{instance.title}' for {subject} ({faculty}, Semester {semester}) is now available. Deadline: {instance.deadline.strftime('%Y-%m-%d')}",
+            
+        )
         #  if created:
     #     # Send notification to a topic instead of all devices
     #     FCMDevice.objects.send_message(

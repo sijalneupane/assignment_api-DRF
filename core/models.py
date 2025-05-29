@@ -34,12 +34,25 @@ class CustomUserManager(BaseUserManager):
 # Create your models here.
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (('student','Student'), ('admin','Admin'), ('teacher','Teacher'))
-    GENDER_CHOICES = (('fale','Male'), ('female','Female'), ('others','Others'))
+    GENDER_CHOICES = (('male','Male'), ('female','Female'), ('others','Others'))
     name= models.CharField(max_length=250,null=True, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     gender = models.CharField(max_length=10,choices=GENDER_CHOICES,null=True, blank=True)
     contact = models.CharField(max_length=10,null=True, blank=True)
     email = models.EmailField(unique=True)
+    FACULTY_CHOICES = (
+        ('ALL', 'All'),
+        ('BCA', 'BCA'),
+        ('BIM', 'BIM'),
+        ('CSIT', 'CSIT'),
+    )
+    faculty = models.CharField(
+        max_length=10,
+        choices=FACULTY_CHOICES,
+        default='ALL',
+        null=True,
+        blank=True
+    )
     
     # fix reverse accessor clash if needed (you already have)
     groups = models.ManyToManyField(

@@ -139,14 +139,15 @@ class LoginView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            device_token=serializer.validated_data["deviceToken"]
+            device_token = request.data.get('deviceToken', None)
             try:
                 user = CustomUser.objects.get(email=email)
                 if check_password(password, user.password):
                     # Use RefreshToken instead of AccessToken for better handling
                     # refresh = RefreshToken.for_user(user)
-                    if not register_device_token(user, device_token):
-                        raise Exception("Failed to register device")
+                    if device_token:
+                         if not register_device_token(user, device_token):
+                            raise Exception("Failed to register device")
                     access=AccessToken.for_user(user)
                     
                     # Add custom claims to the token

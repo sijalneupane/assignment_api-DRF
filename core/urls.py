@@ -12,5 +12,5 @@ urlpatterns = [
     path('getAssignment/<int:id>/',AssignmentViews.GetAssignmentByIdView.as_view()),
     path('editAssignment/<int:id>/',AssignmentViews.UpdateAssignmentView.as_view()),
     path('deleteAssignment/<int:id>/',AssignmentViews.DeleteAssignmentByIdView.as_view()),
-    # path('showMessage/',CoreViews.ShowMsg().as_view()),
+    path('showMessage/',CoreViews.ShowMsg().as_view()),
 ]

@@ -50,27 +50,42 @@ def register_device_token( user, device_token):
     # device_type = request.data.get('deviceType', 'android')  # default to android
     try:  
         if not device_token:
-            return Response({'error': 'Device token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return False
 
+        # Check if user has existing devices
+        existing_devices = CustomDevice.objects.filter(user=user, active=True)
+        device_count = existing_devices.count()
+
+        # If user has exactly one device, update its registration_id
+        if device_count == 1:
+            existing_device = existing_devices.first()
+            existing_device.registration_id = device_token
+            existing_device.save()
+            return True
+
+        # Otherwise, use the original get_or_create logic
         device, created = CustomDevice.objects.get_or_create(
             registration_id=device_token,
             defaults={
                 'user': user,
-                # 'type': device_type,
                 'active': True,
             }
         )
+        
         if not created:
             # If device already exists, update user and set active
             device.user = user
-            # device.type = device_type
             device.active = True
             device.save()
 
         return True
+        
     except Exception as e:
+        # Note: This will cause an error since Response is not imported
+        # Consider returning False or logging the error instead
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
- 
+
+
 class TeacherPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
@@ -129,6 +144,9 @@ class AddAssignmentView(APIView):
 
 class GetAssignmentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    @extend_schema(
+        tags=['Assignments']
+    )
     def get(self, request):
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)

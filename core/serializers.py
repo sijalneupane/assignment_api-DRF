@@ -40,9 +40,8 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
-        deviceToken=attrs.get("deviceToken")
 
-        if not email or not password or not deviceToken:
+        if not email or not password:
             raise serializers.ValidationError("Both email and password and device token are required.")
 
         return attrs

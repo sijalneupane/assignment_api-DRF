@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'assignments',
     'fcm_django',
     'drf_spectacular',
+    'notices',
 ]
 
 MIDDLEWARE = [
@@ -153,6 +154,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Flutter web or emulator
     "http://127.0.0.1:3000",  # Alternate localhost
     "http://localhost:8000",  # DRF if accessed from browser
+    "http://localhost:60608",  # DRF if accessed from browser
     # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
 ]
 CORS_ALLOW_HEADERS = [
