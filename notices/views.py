@@ -14,7 +14,7 @@ class NoticeListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return Notices.objects.select_related('issued_by').all()
+        return Notices.objects.select_related('issued_by').all().order_by('updated_at').reverse()
     
     def get_serializer_class(self):
         if self.request.method == 'GET':

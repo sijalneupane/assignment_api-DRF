@@ -8,7 +8,7 @@ class NoticeWriteSerializer(serializers.ModelSerializer):
     target_audience=serializers.JSONField(required=False)
     class Meta:
         model = Notices
-        fields = ['title', 'content', 'notice_date',
+        fields = ['title', 'notice_image_URL',
             'priority',
             'category',
             'target_audience']
@@ -24,7 +24,7 @@ class NoticeWriteSerializer(serializers.ModelSerializer):
         return value
     def validate(self, attrs):
         # Only validate fields that should be provided by user
-        required_fields = ['title', 'content', 'notice_date']
+        required_fields = ['title','notice_image_URL',]
         missing_fields = [field for field in required_fields if not attrs.get(field)]
         
         if missing_fields:
@@ -36,12 +36,12 @@ class NoticeReadSerializer(serializers.ModelSerializer):
     """Serializer for reading notices with user details"""
     # issued_by_name = serializers.CharField(source='issued_by.get_full_name', read_only=True)
     issued_by_username = serializers.CharField(source='issued_by.username', read_only=True)
-    
+    notice_image_URL = serializers.SerializerMethodField()
     target_audience = serializers.JSONField(required=False)
     class Meta:
         model = Notices
         fields = [
-            'id', 'title', 'content', 'notice_date', 
+            'id', 'title','notice_image_URL',
             'issued_by',
             # 'issued_by_name',
             'issued_by_username',
@@ -50,3 +50,12 @@ class NoticeReadSerializer(serializers.ModelSerializer):
             'target_audience',
             'created_at', 'updated_at'
         ]
+    def get_notice_image_URL(self, obj):
+        url = str(obj.notice_image_URL) if obj.notice_image_URL else None
+        if url.endswith('.jpg'): 
+            url = url + '.jpg'
+        if url.endswith('.png'):
+            url = url + '.png'
+        if url.endswith('.jpeg'):
+            url = url + '.jpeg'
+        return url if url else None

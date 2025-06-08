@@ -1,5 +1,6 @@
 from django.db import models
 from core.models import CustomUser
+from cloudinary.models import CloudinaryField
 
 TARGET_AUDIENCE_CHOICES=['ALL','BCA','BIM','CSIT']
 # Create your models here.
@@ -17,9 +18,11 @@ class Notices(models.Model):
         ('seminar', 'Seminar'),
     ]
     title=models.CharField(max_length=200)
-    content=models.TextField()
+    # content=models.TextField()
     issued_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role__in': ['admin', 'teacher']}, default=1)
-    notice_date = models.DateField()
+    # notice_date = models.DateField()
+    notice_image_URL = CloudinaryField('image', blank=True, null=True, resource_type='image', folder='notices')
+    # image=CloudinaryField('image', blank=True, null=True, resource_type='image', folder='notices')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
     target_audience = models.JSONField(default=list, blank=True) 

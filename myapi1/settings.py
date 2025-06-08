@@ -213,3 +213,42 @@ FCM_DJANGO_SETTINGS = {
     "ONE_DEVICE_PER_USER": False,
     "DELETE_INACTIVE_DEVICES": False,
 }
+
+
+
+
+# #cloudinary settings
+# import cloudinary
+# import cloudinary.uploader
+# import cloudinary.api 
+
+# # Configuration       
+# cloudinary.config(
+#     cloudinary_url=os.getenv("CLOUDINARY_URL"),
+#     secure=True
+# )
+
+# # Define the upload preset details
+# upload_preset_name = "my_preset"
+# upload_preset_options = {
+#     "unsigned": False,
+#     "folder": "notices",
+#     "tags": "notice",
+#     "transformation": [
+#         {"width": 500, "height": 700, "crop": "fill"},
+#     ],
+#     "categorization": "aws_rek_tagging",
+#     "auto_tagging": 0.9
+# }
+
+# # Create the upload preset using the SDK
+# upload_preset = cloudinary.api.create_upload_preset(
+#     name=upload_preset_name,
+#     settings=upload_preset_options
+# )
+
+# # Check if the upload preset was created successfully
+# if upload_preset.get("name") == upload_preset_name:
+#     print("Upload preset created successfully.")
+# else:
+#     print("Failed to create upload preset.")

@@ -160,7 +160,11 @@ class LoginView(APIView):
                         # "refresh": str(refresh),
                         "token": str(access),
                         "message": "Login Success",
-                        "role":access.get('role')
+                        "id":access.get('user_id'),
+                        "role":access.get('role'),
+                        "email": access.get('email'),
+                        "username": user.username,
+                        "name": user.name,
                     }, status=status.HTTP_200_OK)
                 return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
             except CustomUser.DoesNotExist:

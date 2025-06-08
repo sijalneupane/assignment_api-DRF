@@ -131,11 +131,11 @@ class AddAssignmentView(APIView):
         try:
             data['subject']=Subject.objects.get(name=data['subjectName']).id
         except Subject.DoesNotExist:
-            return Response({"error":"SUbject does not exist"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error":"SUbject is not available"},status=status.HTTP_400_BAD_REQUEST)
         try:
             data['teacher'] = request.user.id
         except CustomUser.DoesNotExist:
-            return Response({"error":"Teacher does not exist"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error":"Teacher does not exist"},status=status.HTTP_400_BAD_REQUEST)
         serializer = AssignmentCreateSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -166,6 +166,7 @@ class GetAssignmentView(APIView):
             assignment_data = dict(assignment_data)
             assignment_data['subjectName'] = subject.name
             assignment_data['teacher'] = teacher.name
+            assignment_data['teacherId'] = teacher.id
             data.append(assignment_data)
         return Response(data, status=status.HTTP_200_OK)
 
