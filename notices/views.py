@@ -5,7 +5,19 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.exceptions import PermissionDenied
 from .models import Notices
 from .serializers import NoticeWriteSerializer, NoticeReadSerializer
-
+from drf_spectacular.utils import extend_schema
+@extend_schema(
+    tags=['Notices'],
+    summary='Manage Notices',
+    description='API for creating, listing, retrieving, updating, and deleting notices.',
+    responses={
+        200: NoticeReadSerializer,
+        201: NoticeWriteSerializer,
+        204: None,
+        403: 'Permission denied',
+        404: 'Notice not found'
+    }
+)
 class NoticeListCreateView(ListCreateAPIView):
     """
     GET: List all notices (for all authenticated users)
