@@ -142,10 +142,11 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "EXCEPTION_HANDLER": "utils.detailtomessage.custom_exception_handler"
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your API',
+    'TITLE': 'Assignment API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -155,13 +156,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",  # Alternate localhost
     "http://localhost:8000",  # DRF if accessed from browser
     "http://localhost:60608",  # DRF if accessed from browser
+    "http://127.0.0.1:5500",   # DRF if accessed from browser
     # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
 ]
 CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-    'x-csrftoken',
-    
+    "content-type",
+    "authorization",
+    "x-csrftoken",
+    "accept",
+    "accept-encoding",
+    "origin",
+    "user-agent",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -215,7 +220,7 @@ FCM_DJANGO_SETTINGS = {
 }
 
 
-
+APPEND_SLASH = False
 
 # #cloudinary settings
 # import cloudinary
