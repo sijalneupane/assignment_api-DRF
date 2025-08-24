@@ -42,7 +42,7 @@ def POST_SuccessResponse(message, data=None):
     """
     return Response({"success": True, "message": message, "data": data} if data is not None else {"success": True, "message": message}, status=status.HTTP_201_CREATED)
 
-def DELETE_SuccessResponse(message):
+def DELETE_SuccessResponse(message,data=None):
     """
     Returns a successful DELETE response with HTTP 204 No Content status.
     
@@ -52,7 +52,7 @@ def DELETE_SuccessResponse(message):
     Returns:
         Response: DRF Response object with success flag, message, and 204 status code
     """
-    return Response({"success": True, "message": message}, status=status.HTTP_204_NO_CONTENT)
+    return Response({"success": True, "message": message} if data is None else {"success": True, "message": message, "data": data}, status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -71,10 +71,10 @@ def BadRequestException(message,data=None):
     Returns:
         Response: DRF Response object with success=False, error message, and 400 status code
     """
-    return Response({"success":False, "message": message,"error":data}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"success":False, "message": message,"error":data} if data is not None else {"success":False, "message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 ## for authentication denied or login failed
-def UnauthorizedException(message):
+def UnauthorizedException(message, data=None):
     """
     Returns an Unauthorized error response with HTTP 401 status.
     Used when authentication is required but has failed or not been provided.
@@ -85,10 +85,10 @@ def UnauthorizedException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 401 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_401_UNAUTHORIZED)
 
 ## for payment required
-def PaymentRequiredException(message):
+def PaymentRequiredException(message, data=None):
     """
     Returns a Payment Required error response with HTTP 402 status.
     Used when payment is required to access the requested resource.
@@ -99,10 +99,10 @@ def PaymentRequiredException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 402 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_402_PAYMENT_REQUIRED)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_402_PAYMENT_REQUIRED)
 
 ## for permission denied
-def ForbiddenException(message):
+def ForbiddenException(message, data=None):
     """
     Returns a Forbidden error response with HTTP 403 status.
     Used when the user is authenticated but lacks permission to access the resource.
@@ -113,10 +113,10 @@ def ForbiddenException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 403 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_403_FORBIDDEN)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_403_FORBIDDEN)
 
 ## for not found
-def NotFoundException(message):
+def NotFoundException(message, data=None):
     """
     Returns a Not Found error response with HTTP 404 status.
     Used when the requested resource cannot be found.
@@ -127,10 +127,10 @@ def NotFoundException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 404 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_404_NOT_FOUND)
 
 ## for method not allowed
-def MethodNotAllowedException(message):
+def MethodNotAllowedException(message, data=None):
     """
     Returns a Method Not Allowed error response with HTTP 405 status.
     Used when the HTTP method is not supported for the requested resource.
@@ -141,10 +141,10 @@ def MethodNotAllowedException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 405 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 ## for conflict
-def ConflictException(message):
+def ConflictException(message, data=None):
     """
     Returns a Conflict error response with HTTP 409 status.
     Used when the request conflicts with the current state of the resource.
@@ -155,10 +155,10 @@ def ConflictException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 409 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_409_CONFLICT)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_409_CONFLICT)
 
 ## for request timeout
-def RequestTimeoutException(message):
+def RequestTimeoutException(message, data=None):
     """
     Returns a Request Timeout error response with HTTP 408 status.
     Used when the server times out waiting for the request from the client.
@@ -169,14 +169,14 @@ def RequestTimeoutException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 408 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_408_REQUEST_TIMEOUT)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_408_REQUEST_TIMEOUT)
 
 
 
 # <------------------------ SERVER and RELATED ERROR Responses ------------------------>
 
 # internal Server Error
-def InternalServerError(message):
+def InternalServerError(message,data=None):
     """
     Returns an Internal Server Error response with HTTP 500 status.
     Used when an unexpected condition prevents the server from fulfilling the request.
@@ -187,9 +187,9 @@ def InternalServerError(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 500 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-def NotImplementedException(message):
+def NotImplementedException(message,data=None):
     """
     Returns a Not Implemented error response with HTTP 501 status.
     Used when the server does not support the functionality required to fulfill the request.
@@ -200,9 +200,9 @@ def NotImplementedException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 501 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_501_NOT_IMPLEMENTED)
 
-def ServiceUnavailableException(message):
+def ServiceUnavailableException(message,data=None):
     """
     Returns a Service Unavailable error response with HTTP 503 status.
     Used when the server is temporarily overloaded or under maintenance.
@@ -213,9 +213,9 @@ def ServiceUnavailableException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 503 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-def GatewayTimeoutException(message):
+def GatewayTimeoutException(message,data=None):
     """
     Returns a Gateway Timeout error response with HTTP 504 status.
     Used when the server acting as a gateway or proxy does not receive a timely response.
@@ -226,4 +226,4 @@ def GatewayTimeoutException(message):
     Returns:
         Response: DRF Response object with success=False, error message, and 504 status code
     """
-    return Response({"success":False, "message": message}, status=status.HTTP_504_GATEWAY_TIMEOUT)
+    return Response({"success":False, "message": message} if data is None else {"success":False, "message": message, "data": data}, status=status.HTTP_504_GATEWAY_TIMEOUT)
