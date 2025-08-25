@@ -3,7 +3,7 @@ from .views import NoticeListCreateView, NoticeDetailView
 
 urlpatterns = [
     path('', NoticeListCreateView.as_view(), name='notice-list-create'),
-    path('<int:pk>/', NoticeDetailView.as_view(), name='notice-detail'),
+    path('/<int:pk>', NoticeDetailView.as_view(), name='notice-detail'),
 ]
 
 # Alternative URL patterns if using separate views:
