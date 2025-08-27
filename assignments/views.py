@@ -22,7 +22,7 @@ from utils.custompermissions import TeacherPermission
             value={
                 "title": "Computer Network Assignment",
                 "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
-                "subjectName": "Computer Network",
+                "subject_id": "NiNjXhZKMaEcDWtPVH",
                 "semester": "First Semester",
                 "faculty": "BCA"
             },
@@ -46,7 +46,7 @@ class AssignmentCreateView(generics.CreateAPIView):
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
                     assignment = serializer.save(teacher=request.user)
-                    response_serializer = AssignmentSerializer(assignment)
+                    response_serializer = AssignmentCreateSerializer(assignment)
                     return Response({
                         'data': response_serializer.data,
                         'message': 'Assignment created successfully'
@@ -83,9 +83,9 @@ class AssignmentListView(generics.ListAPIView):
             for assignment in assignments:
                 serializer = self.get_serializer(assignment)
                 assignment_data = dict(serializer.data)
-                assignment_data['subjectName'] = assignment.subject.name
-                assignment_data['teacher'] = assignment.teacher.name
-                assignment_data['teacherId'] = assignment.teacher.id
+                # assignment_data['subjectName'] = assignment.subject.name
+                # assignment_data['teacher'] = assignment.teacher.name
+                # assignment_data['teacherId'] = assignment.teacher.id
                 data.append(assignment_data)
             return Response({
                 'data': data,
@@ -113,9 +113,9 @@ class AssignmentDetailView(generics.RetrieveAPIView):
             assignment = self.get_object()
             serializer = self.get_serializer(assignment)
             assignment_data = dict(serializer.data)
-            assignment_data['subjectName'] = assignment.subject.name
-            assignment_data['teacher'] = assignment.teacher.name
-            assignment_data['teacherId'] = assignment.teacher.id
+            # assignment_data['subjectName'] = assignment.subject.name
+            # assignment_data['teacher'] = assignment.teacher.name
+            # assignment_data['teacherId'] = assignment.teacher.id
             return Response({
                 'data': assignment_data,
                 'message': 'Assignment retrieved successfully'

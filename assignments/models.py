@@ -38,7 +38,7 @@ class Assignment(models.Model):
     assignment_id = ShortUUIDField(max_length=6, primary_key=True)
     title=models.CharField(max_length=250)
     description=models.TextField()
-    subject=models.ForeignKey(Subject,on_delete=models.CASCADE, blank=False,null=False)
+    subject=models.ForeignKey(Subject, on_delete=models.CASCADE, blank=False, null=False)
     teacher=models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role__in': ['admin', 'teacher']}, default=0)
     deadline = models.DateTimeField(default= timezone.now() + datetime.timedelta(days=7))
     #--

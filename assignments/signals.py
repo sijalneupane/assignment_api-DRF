@@ -24,7 +24,7 @@ def notify_assignment_created(sender, instance, created, **kwargs):
                 Message(
                     notification=Notification(title="📘 New Assignment", body=f"{instance.title} ({subject}) has been added for {faculty}, Semester {semester}. Due on {instance.deadline.strftime('%Y-%m-%d')}"),
                     data={
-                        "assignment_id": str(instance.id),
+                        "assignment_id": str(instance.assignment_id),
                         "faculty": str(faculty),
                         "semester": str(semester),
                         "subject": str(subject),

@@ -2,7 +2,12 @@
 from .models import CustomUser, Assignment, Subject
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, NotFound
-from subjects.serializers import SubjectSerializer
+
+class MinimalSubjectSerializer(serializers.ModelSerializer):
+    """Minimal subject serializer that only returns id and name"""
+    class Meta:
+        model = Subject
+        fields = ['subject_id', 'name']
 class AssignmentCreateSerializer(serializers.ModelSerializer):
     subject_id = serializers.CharField(write_only=True)  # Accept subject_id in request
     
@@ -33,7 +38,7 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
-    subject = SubjectSerializer(read_only=True)  # Nested subject details
+    subject = MinimalSubjectSerializer(read_only=True)  # Only subject id and name
 
     class Meta:
         model = Assignment
