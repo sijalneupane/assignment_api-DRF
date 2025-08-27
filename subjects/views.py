@@ -77,8 +77,7 @@ class SubjectDetailView(generics.RetrieveAPIView):
                 "name": "Computer Networks",
                 "code": "CN101",
                 "credit_hours": 3,
-                "semester": "Fifth Semester",
-                "faculty": "BCA"
+                "description": "Introduction to Computer Networks"
             },
             request_only=True,
         )
@@ -128,9 +127,7 @@ class SubjectCreateView(generics.CreateAPIView):
                 "name": "Advanced Computer Networks",
                 "code": "ACN101",
                 "credit_hours": 4,
-                "description": "Advanced study of computer networks",
-                "semester": "Fifth Semester",
-                "faculty": "BCA"
+                "description": "Advanced study of computer networks"
             },
             request_only=True,
         )
@@ -195,5 +192,6 @@ class SubjectDeleteView(generics.DestroyAPIView):
         except Exception as e:
             print(e)
             return Response({
-                'message': 'Failed to delete subject'
+                'message': 'Failed to delete subject',
+                'data': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
