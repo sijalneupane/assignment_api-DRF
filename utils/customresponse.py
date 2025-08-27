@@ -1,5 +1,189 @@
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import exception_handler
+from rest_framework.exceptions import APIException
+
+# <------------------------ Custom Exception Classes ------------------------>
+
+class CustomAPIException(APIException):
+    """Base class for custom API exceptions"""
+    def __init__(self, message, data=None, status_code=None):
+        self.message = message
+        self.data = data
+        if status_code:
+            self.status_code = status_code
+        super().__init__(detail=message)
+
+class BadRequestException(CustomAPIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Bad request'
+    default_code = 'bad_request'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class UnauthorizedException(CustomAPIException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_detail = 'Unauthorized'
+    default_code = 'unauthorized'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class PaymentRequiredException(CustomAPIException):
+    status_code = status.HTTP_402_PAYMENT_REQUIRED
+    default_detail = 'Payment required'
+    default_code = 'payment_required'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class ForbiddenException(CustomAPIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = 'Forbidden'
+    default_code = 'forbidden'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class NotFoundException(CustomAPIException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = 'Not found'
+    default_code = 'not_found'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class MethodNotAllowedException(CustomAPIException):
+    status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+    default_detail = 'Method not allowed'
+    default_code = 'method_not_allowed'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class RequestTimeoutException(CustomAPIException):
+    status_code = status.HTTP_408_REQUEST_TIMEOUT
+    default_detail = 'Request timeout'
+    default_code = 'request_timeout'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class ConflictException(CustomAPIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = 'Conflict'
+    default_code = 'conflict'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class InternalServerError(CustomAPIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = 'Internal server error'
+    default_code = 'internal_server_error'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class NotImplementedException(CustomAPIException):
+    status_code = status.HTTP_501_NOT_IMPLEMENTED
+    default_detail = 'Not implemented'
+    default_code = 'not_implemented'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class ServiceUnavailableException(CustomAPIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = 'Service unavailable'
+    default_code = 'service_unavailable'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+class GatewayTimeoutException(CustomAPIException):
+    status_code = status.HTTP_504_GATEWAY_TIMEOUT
+    default_detail = 'Gateway timeout'
+    default_code = 'gateway_timeout'
+    
+    def __init__(self, message, data=None):
+        super().__init__(message, data, self.status_code)
+
+# <------------------------ Custom Exception Handler ------------------------>
+
+def custom_exception_handler(exc, context):
+    """Custom exception handler to format responses consistently"""
+    
+    # Call REST framework's default exception handler first,
+    # to get the standard error response.
+    response = exception_handler(exc, context)
+    
+    if response is not None and isinstance(exc, CustomAPIException):
+        custom_response_data = {
+            'success': False,
+            'message': exc.message
+        }
+        
+        if exc.data is not None:
+            custom_response_data['data'] = exc.data
+            
+        response.data = custom_response_data
+    
+    return response
+
+# <------------------------ API SUCCESS Responses ------------------------>
+# api success response
+def GET_SuccessResponse(message, data=None):
+    """
+    Returns a successful GET response with HTTP 200 OK status.
+    
+    Args:
+        message (str): Success message to be included in the response
+        data (optional): Data payload to be included in the response. Defaults to None.
+    
+    Returns:
+        Response: DRF Response object with success flag, message, data, and 200 status code
+    """
+    return Response({"success": True, "message": message, "data": data} if data is not None else {"success": True, "message": message}, status=status.HTTP_200_OK)
+
+def PUTPATCH_SuccessResponse(message, data=None):
+    """
+    Returns a successful PUT/PATCH response with HTTP 200 OK status.
+    
+    Args:
+        message (str): Success message to be included in the response
+        data (optional): Updated data payload to be included in the response. Defaults to None.
+    
+    Returns:
+        Response: DRF Response object with success flag, message, data, and 200 status code
+    """
+    return Response({"success": True, "message": message, "data": data}, status=status.HTTP_200_OK)
+
+def POST_SuccessResponse(message, data=None):
+    """
+    Returns a successful POST response with HTTP 201 Created status.
+    
+    Args:
+        message (str): Success message to be included in the response
+        data (optional): Created resource data to be included in the response. Defaults to None.
+    
+    Returns:
+        Response: DRF Response object with success flag, message, data, and 201 status code
+    """
+    return Response({"success": True, "message": message, "data": data} if data is not None else {"success": True, "message": message}, status=status.HTTP_201_CREATED)
+
+def DELETE_SuccessResponse(message,data=None):
+    """
+    Returns a successful DELETE response with HTTP 204 No Content status.
+    
+    Args:
+        message (str): Success message to be included in the response
+    
+    Returns:
+        Response: DRF Response object with success flag, message, and 204 status code
+    """
+    return Response({"success": True, "message": message} if data is None else {"success": True, "message": message, "data": data}, status=status.HTTP_204_NO_CONTENT)
 
 # <------------------------ API SUCCESS Responses ------------------------>
 # api success response
@@ -71,7 +255,7 @@ def BadRequestException(message,data=None):
     Returns:
         Response: DRF Response object with success=False, error message, and 400 status code
     """
-    return Response({"success":False, "message": message,"error":data} if data is not None else {"success":False, "message": message}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"success":False, "message": message, "data":data} if data is not None else {"success":False, "message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 ## for authentication denied or login failed
 def UnauthorizedException(message, data=None):

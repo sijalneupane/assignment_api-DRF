@@ -1,53 +1,228 @@
 
-from assignments.models import CustomDevice
-from rest_framework import status,permissions
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Assignment,Subject
+from rest_framework.exceptions import ValidationError, NotFound, PermissionDenied
+from django.db import transaction
+from .models import Assignment, Subject, CustomDevice
 from core.models import CustomUser
-from .serializers import AssignmentCreateSerializer,AssignmentSerializer
-from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
+from .serializers import AssignmentCreateSerializer, AssignmentSerializer
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
-# Create your views here.
-# Initialize Firebase app (ensure this runs only once)
-# if not firebase_admin._apps:
-#     cred = credentials.Certificate('path/to/your/firebase/credentials.json')
-#     firebase_admin.initialize_app(cred)
+from utils.custompermissions import TeacherPermission
 
-# def send_firebase_notification_to_topic(topic, title, body, data_payload=None):
-#     """
-#     Send a Firebase notification to all devices subscribed to a topic using django-fcm.
-#     """
-#     if not topic or not title or not body:
-#         raise ValueError("Missing required fields: topic, title, or body.")
+@extend_schema(
+    summary="Create new assignment",
+    description="Add a new assignment. Only teachers and admins can create assignments.",
+    request=AssignmentCreateSerializer,
+    examples=[
+        OpenApiExample(
+            'Assignment Creation Example',
+            summary='Create assignment request',
+            description='Example request body for creating a new assignment',
+            value={
+                "title": "Computer Network Assignment",
+                "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
+                "subjectName": "Computer Network",
+                "semester": "First Semester",
+                "faculty": "BCA"
+            },
+            request_only=True,
+        )
+    ],
+    tags=['Assignments']
+)
+class AssignmentCreateView(generics.CreateAPIView):
+    """API View to create new assignments"""
+    permission_classes = [permissions.IsAuthenticated, TeacherPermission]
+    serializer_class = AssignmentCreateSerializer
+    queryset = Assignment.objects.all()
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                data = request.data.copy()
+                # Don't set teacher in data, we'll set it when saving
+                
+                serializer = self.get_serializer(data=data)
+                if serializer.is_valid():
+                    assignment = serializer.save(teacher=request.user)
+                    response_serializer = AssignmentSerializer(assignment)
+                    return Response({
+                        'data': response_serializer.data,
+                        'message': 'Assignment created successfully'
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({
+                        'message': 'Validation error',
+                        'errors': serializer.errors
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        except Subject.DoesNotExist:
+            raise NotFound("Subject not found")
+        except Exception as e:
+            print(e)
+            return Response({
+                'message': 'Failed to create assignment',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-#     devices = CustomDevice.objects.filter(active=True, type='android', user__groups__name=topic)
-#     # Adjust the filter as per your topic subscription logic
+@extend_schema(
+    summary="Get all assignments",
+    description="Retrieve all assignments with subject and teacher details",
+    tags=['Assignments']
+)
+class AssignmentListView(generics.ListAPIView):
+    """API View to retrieve all assignments"""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AssignmentSerializer
+    queryset = Assignment.objects.all().order_by("created_at").reverse()
 
-#     result = devices.send_message(
-#         title=title,
-#         body=body,
-#         data=data_payload or {},
-#     )
-#     return result
+    def list(self, request, *args, **kwargs):
+        try:
+            assignments = self.get_queryset()
+            data = []
+            for assignment in assignments:
+                serializer = self.get_serializer(assignment)
+                assignment_data = dict(serializer.data)
+                assignment_data['subjectName'] = assignment.subject.name
+                assignment_data['teacher'] = assignment.teacher.name
+                assignment_data['teacherId'] = assignment.teacher.id
+                data.append(assignment_data)
+            return Response({
+                'data': data,
+                'message': 'Assignments retrieved successfully'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'message': 'Failed to retrieve assignments'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-def register_device_token( user, device_token):
+
+@extend_schema(
+    summary="Get assignment by ID",
+    description="Retrieve a specific assignment by its ID",
+    tags=['Assignments']
+)
+class AssignmentDetailView(generics.RetrieveAPIView):
+    """API View to retrieve assignment by ID"""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AssignmentSerializer
+    queryset = Assignment.objects.all()
+    
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            assignment = self.get_object()
+            serializer = self.get_serializer(assignment)
+            assignment_data = dict(serializer.data)
+            assignment_data['subjectName'] = assignment.subject.name
+            assignment_data['teacher'] = assignment.teacher.name
+            assignment_data['teacherId'] = assignment.teacher.id
+            return Response({
+                'data': assignment_data,
+                'message': 'Assignment retrieved successfully'
+            }, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            raise NotFound("Assignment not found")
+        except Exception as e:
+            return Response({
+                'message': 'Failed to retrieve assignment'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@extend_schema(
+    summary="Update assignment",
+    description="Update an existing assignment. Only teachers and admins can update assignments.",
+    request=AssignmentCreateSerializer,
+    examples=[
+        OpenApiExample(
+            'Assignment Update Example',
+            summary='Update assignment request',
+            description='Example request body for updating an assignment',
+            value={
+                "title": "Updated Computer Network Assignment",
+                "description": "Complete exercises 1-15 from chapter 3. Show all your work.",
+                "subjectName": "Computer Network",
+                "semester": "First Semester",
+                "faculty": "BCA"
+            },
+            request_only=True,
+        )
+    ],
+    tags=['Assignments']
+)
+
+class AssignmentUpdateView(generics.UpdateAPIView):
+    """API View to update assignments"""
+    permission_classes = [permissions.IsAuthenticated, TeacherPermission]
+    serializer_class = AssignmentCreateSerializer
+    queryset = Assignment.objects.all()
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                assignment = self.get_object()
+                data = request.data.copy()
+                
+                try:
+                    subject = Subject.objects.get(name=data['subjectName'])
+                    data['subject'] = subject.id
+                    data['teacher'] = request.user.id
+                except Subject.DoesNotExist:
+                    raise NotFound("Subject not found")
+                except KeyError:
+                    return Response({
+                        'message': 'subjectName is required'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                serializer = self.get_serializer(assignment, data=data, partial=True)
+                if serializer.is_valid():
+                    updated_assignment = serializer.save()
+                    response_serializer = AssignmentSerializer(updated_assignment)
+                    return Response({
+                        'data': response_serializer.data,
+                        'message': 'Assignment updated successfully'
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'message': 'Validation error',
+                        'errors': serializer.errors
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        except Assignment.DoesNotExist:
+            raise NotFound("Assignment not found")
+        except Exception as e:
+            return Response({
+                'message': 'Failed to update assignment'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@extend_schema(
+        summary="Delete assignment",
+        description="Delete an existing assignment by its ID. Only teachers and admins can delete assignments.",
+        tags=['Assignments']
+    )
+class AssignmentDeleteView(generics.DestroyAPIView):
+    """API View to delete assignments"""
+    permission_classes = [permissions.IsAuthenticated, TeacherPermission]
+    queryset = Assignment.objects.all()
+    
+    def destroy(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                assignment = self.get_object()
+                assignment.delete()
+                return Response({
+                    'message': 'Assignment deleted successfully'
+                }, status=status.HTTP_200_OK)
+        except Assignment.DoesNotExist:
+            raise NotFound("Assignment not found")
+        except Exception as e:
+            return Response({
+                'message': 'Failed to delete assignment'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def register_device_token(user, device_token):
     """
     Register a device token for the authenticated user.
     Allows multiple devices per user.
     """
-    # # Explicitly set renderer classes if needed
-    # request.accepted_renderer = JSONRenderer()
-    """
-    Register a device token for the authenticated user.
-    Allows multiple devices per user.
-    """
-    # device_token = data.get('deviceToken')
-    # device_type = request.data.get('deviceType', 'android')  # default to android
     try:  
         if not device_token:
             return False
@@ -81,275 +256,4 @@ def register_device_token( user, device_token):
         return True
         
     except Exception as e:
-        # Note: This will cause an error since Response is not imported
-        # Consider returning False or logging the error instead
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class TeacherPermission(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            print("User is not authenticated , ${request.user.is_authenticated}")
-            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED) and False
-        token = request.auth
-        return token and token.get('role') in ['teacher', 'admin']
-    
-class AddAssignmentView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    @extend_schema(
-        summary="Create new assignment",
-        description="Add a new assignment. Only teachers and admins can create assignments.",
-        request=AssignmentCreateSerializer,
-        responses={
-            201: AssignmentSerializer,
-            400: "Validation errors",
-            403: "Permission denied - Only teachers and admins can add assignments",
-            404: "Subject or teacher not found"
-        },
-        examples=[
-            OpenApiExample(
-                'Assignment Creation Example',
-                summary='Create assignment request',
-                description='Example request body for creating a new assignment',
-                value={
-                    "title": "Computer Network",
-                    "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
-                    "subjectName": "Computer Network",
-                    "semester":"First Semester",
-                    "faculty":"BCA"
-                },
-                request_only=True,
-            )
-        ],
-        tags=['Assignments']
-    )
-    def post(self, request):
-        if not TeacherPermission().has_permission(request, self):
-            return Response({"error": "Only teachers and admins can add assignments"}, status=status.HTTP_403_FORBIDDEN)
-        
-        data = request.data.copy()
-        try:
-            data['subject']=Subject.objects.get(name=data['subjectName']).id
-        except Subject.DoesNotExist:
-            return Response({"error":"SUbject is not available"},status=status.HTTP_400_BAD_REQUEST)
-        try:
-            data['teacher'] = request.user.id
-        except CustomUser.DoesNotExist:
-            return Response({"error":"Teacher does not exist"},status=status.HTTP_400_BAD_REQUEST)
-        serializer = AssignmentCreateSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Assignment added successfully"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class GetAssignmentView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    @extend_schema(
-        tags=['Assignments']
-    )
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        assignments = Assignment.objects.all().order_by("id")
-        serializer = AssignmentSerializer(assignments, many=True)
-        data = []
-        for assignment, assignment_data in zip(assignments, serializer.data):
-            try:
-                subject = Subject.objects.get(id=assignment.subject.id)
-            except Subject.DoesNotExist:
-                return Response({"error": "Subject Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
-            try:
-                teacher = CustomUser.objects.get(id=assignment.teacher.id)
-            except CustomUser.DoesNotExist:
-                return Response({"error": "Teacher Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
-            assignment_data = dict(assignment_data)
-            assignment_data['subjectName'] = subject.name
-            assignment_data['teacher'] = teacher.name
-            assignment_data['teacherId'] = teacher.id
-            data.append(assignment_data)
-        return Response(data, status=status.HTTP_200_OK)
-
-class GetAssignmentByIdView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    @extend_schema(
-        summary="Get assignment by ID",
-        description="Retrieve a specific assignment by its ID with subject and teacher details",
-        responses={
-            200: AssignmentSerializer,
-            401: "Authentication required",
-            404: "Assignment, subject, or teacher not found"
-        },
-        parameters=[
-            OpenApiParameter(
-                name='id',
-                description='Assignment ID',
-                required=True,
-                type=int,
-                location=OpenApiParameter.PATH
-            ),
-        ],
-        tags=['Assignments']
-    )
-    def get(self, request, id):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        # try:
-        assignment = Assignment.objects.get(id=id)
-        subject = Subject.objects.get(id=assignment.subject_id.id)
-        teacher = CustomUser.objects.get(id=assignment.teacher_id.id)
-        serializer = AssignmentSerializer(assignment)
-        data = serializer.data
-        data['subject'] = subject.name
-        data['teacher'] = teacher.name  # or teacher.name if you prefer
-        return Response(data, status=status.HTTP_200_OK)
-        # except Assignment.DoesNotExist:
-        #     return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
-        # except Subject.DoesNotExist:
-        #     return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
-        # except CustomUser.DoesNotExist:
-        #     return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-class UpdateAssignmentView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    @extend_schema(
-        summary="Update assignment",
-        description="Update an existing assignment. Only teachers and admins can update assignments.",
-        request=AssignmentCreateSerializer,
-        responses={
-            200: AssignmentSerializer,
-            400: "Validation errors",
-            403: "Permission denied - Only teachers and admins can update assignments",
-            404: "Assignment, subject, or teacher not found"
-        },
-        parameters=[
-            OpenApiParameter(
-                name='id',
-                description='Assignment ID to update',
-                required=True,
-                type=int,
-                location=OpenApiParameter.PATH
-            ),
-        ],
-        examples=[
-            OpenApiExample(
-                'Assignment Update Example',
-                summary='Update assignment request',
-                description='Example request body for updating an assignment',
-                value={
-                    "title": "Computer Network",
-                    "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
-                    "subjectName": "Computer Network",
-                    "semester":"First Semester",
-                    "faculty":"BCA"
-                },
-                request_only=True,
-            )
-        ],
-        tags=['Assignments']
-    )
-    def put(self, request, id):
-        if not TeacherPermission().has_permission(request, self): 
-            return Response({"error": "Only teachers and admins can update assignments"}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            data = request.data.copy()
-            data['subject']=Subject.objects.get(name=data['subjectName']).id
-            data['teacher'] = request.user.id
-            assignment = Assignment.objects.get(id=id)
-            serializer = AssignmentCreateSerializer(assignment, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"message": "Assignment updated successfully"}, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Assignment.DoesNotExist:
-            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Subject.DoesNotExist:
-            return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
-        except CustomUser.DoesNotExist:
-            return Response({"error": "Teacher or admin not found"}, status=status.HTTP_404_NOT_FOUND)
-
-class DeleteAssignmentByIdView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    def delete(self, request, id):
-        if not TeacherPermission().has_permission(request, self):
-            return Response({"error": "Only teachers and admins can delete assignments"}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            assignment = Assignment.objects.get(id=id)
-            assignment.delete()
-            return Response({"message": "Assignment deleted successfully"}, status=status.HTTP_200_OK)
-        except Assignment.DoesNotExist:
-            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-# class SubjectCreateView(APIView):
-#     permission_classes=[permissions.IsAuthenticated]
-#     def post(self,request):
-#         if not TeacherPermission().has_permission(request, self):
-#             return Response({"error": "Only teachers and admins can delete assignments"}, status=status.HTTP_403_FORBIDDEN)
-        
-#         data=request.data.copy()
-#         data['teached_by']=CustomUser.objects.get(name=data['teached_by']).id
-#         serializer=SubjectCreateSerializer(data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message":"Subject Added Successfully"},status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class GetSubjectView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#     def get(self, request):
-#         if not request.user.is_authenticated:
-#             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-#         assignments = Assignment.objects.all()
-#         serializer = AssignmentSerializer(assignments, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# class GetSubjectByIdView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#     def get(self, request, id):
-#         if not request.user.is_authenticated:
-#             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-#         try:
-#             subject = Subject.objects.get(id=id)
-#             serializer = SubjectSerializer(subject)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Subject.DoesNotExist:
-#             return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-# class UpdateSubjectView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#     def put(self, request, id):
-#         if not TeacherPermission().has_permission(request, self):
-#             return Response({"error": "Only teachers and admins can update Subject"}, status=status.HTTP_403_FORBIDDEN)
-        
-#         try:
-#             data = request.data.copy()
-#             data['subject']=Subject.objects.get(name=data['subject']).id
-#             data['teacher'] = request.user.id
-#             assignment = Assignment.objects.get(id=id)
-#             serializer = AssignmentCreateSerializer(assignment, data=data, partial=True)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response({"message": "Assignment updated successfully"}, status=status.HTTP_200_OK)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         except Assignment.DoesNotExist:
-#             return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-# class DeleteSubjectByIdView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#     def delete(self, request, id):
-#         if not TeacherPermission().has_permission(request, self):
-#             return Response({"error": "Only teachers and admins can delete Subject"}, status=status.HTTP_403_FORBIDDEN)
-        
-#         try:
-#             assignment = Assignment.objects.get(id=id)
-#             assignment.delete()
-#             return Response({"message": "Subject deleted successfully"}, status=status.HTTP_200_OK)
-#         except Assignment.DoesNotExist:
-#             return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
+        return False

@@ -10,7 +10,7 @@ from .views import (
 urlpatterns = [
     path('list', SubjectListView.as_view(), name='subject-list'),
     path('create', SubjectCreateView.as_view(), name='subject-create'),
-    path('<int:pk>', SubjectDetailView.as_view(), name='subject-detail'),
-    path('update/<int:pk>', SubjectUpdateView.as_view(), name='subject-update'),
-    path('delete/<int:pk>', SubjectDeleteView.as_view(), name='subject-delete'),
+    path('<str:pk>', SubjectDetailView.as_view(), name='subject-detail'),
+    path('update/<str:pk>', SubjectUpdateView.as_view(), name='subject-update'),
+    path('delete/<str:pk>', SubjectDeleteView.as_view(), name='subject-delete'),
 ]

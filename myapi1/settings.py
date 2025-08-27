@@ -10,20 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+import environ
+
+# Initialise environment variables
+env = environ.Env(
+    DEBUG=(bool, True)
+)
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Read the .env file
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+# or just # Reads .env file like below
+# environ.Env.read_env() 
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-88ua&ggwlt88!5-eba&x3gn)8=(+%rwoq2^57v+)v4psfkl(ld'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['.ngrok-free.app', 'localhost', '127.0.0.1']
 
@@ -45,6 +54,8 @@ INSTALLED_APPS = [
     'fcm_django',
     'drf_spectacular',
     'notices',
+    'subjects',
+    'utils'
 ]
 
 MIDDLEWARE = [
@@ -82,14 +93,15 @@ WSGI_APPLICATION = 'myapi1.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'assignment_api',
-        'USER': 'postgres',
-        'PASSWORD': 'root123',
-        'HOST': 'localhost',  # Set to your database host
-        'PORT': '5432',       # Default PostgreSQL port
-    }
+    'default': env.db(),  # Reads the DATABASE_URL environment variable
+    #     {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': env('DB_NAME'),
+    #     'USER': env('DB_USER'),
+    #     'PASSWORD': env('DB_PASSWORD'),
+    #     'HOST': env('DB_HOST'),
+    #     'PORT': env('DB_PORT'),
+    # }
 }
 
 
@@ -142,42 +154,99 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    "EXCEPTION_HANDLER": "utils.detailtomessage.custom_exception_handler"
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Assignment API',
-    'DESCRIPTION': 'Your project description',
+    'TITLE': 'Assignment Management API',
+    'DESCRIPTION': 'A comprehensive API for managing assignments, subjects, and users in an educational system. '
+                   'This API supports CRUD operations for assignments with proper authentication and authorization.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    # 'SWAGGER_UI_SETTINGS': {
+    #     'deepLinking': True,
+    #     'persistAuthorization': True,
+    #     'displayOperationId': False,
+    #     'docExpansion': 'none',
+    #     # 'filter': True,
+    #     'showExtensions': True,
+    #     'showCommonExtensions': True,
+    # },
+    'TAGS': [
+        {
+          'name':'App Health',
+          'description':'Endpoint for checking application health'
+        },
+        {
+            'name': 'Authentication',
+            'description': 'User authentication and authorization endpoints'
+        },
+        {
+            'name': 'Assignments',
+            'description': 'Assignment management operations - create, read, update, delete assignments'
+        },
+        {
+            'name': 'Notices',
+            'description': 'Notice management operations - create, read, update, delete notices'
+        },
+        {
+            'name': 'Subjects',
+            'description': 'Subject management operations - create, read, update, delete subjects'
+        }
+    ],
+    'SECURITY': [
+        {
+            'jwtAuth': []
+        }
+    ],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'JWT token authentication. Obtain token from /api/token endpoint.'
+            }
+        }
+    },
 }
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Flutter web or emulator
-    "http://127.0.0.1:3000",  # Alternate localhost
-    "http://localhost:8000",  # DRF if accessed from browser
-    "http://localhost:60608",  # DRF if accessed from browser
-    "http://127.0.0.1:5500",   # DRF if accessed from browser
-    # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
-]
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
-    "x-csrftoken",
-    "accept",
-    "accept-encoding",
-    "origin",
-    "user-agent",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Flutter web or emulator
+#     "http://127.0.0.1:3000",  # Alternate localhost
+#     "http://localhost:8000",  # DRF if accessed from browser
+#     "http://localhost:60608",  # DRF if accessed from browser
+#     "http://127.0.0.1:5500",   # DRF if accessed from browser
+#     # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
+# ]
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-]
-CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.ngrok-free\.app$"]
+
+# CORS_ALLOW_HEADERS = [
+#     "content-type",
+#     "authorization",
+#     "x-csrftoken",
+#     "accept",
+#     "accept-encoding",
+#     "origin",
+#     "user-agent",
+# ]
+CORS_ALLOW_HEADERS = env.list("CORS_ALLOW_HEADERS")
+
+
+# CORS_ALLOW_METHODS = [
+#     'GET',
+#     'POST',
+#     'PUT',
+#     'PATCH',
+#     'DELETE',
+#     'OPTIONS',
+# ]
+CORS_ALLOW_METHODS = env.list("CORS_ALLOW_METHODS")
+
+# CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.ngrok-free\.app$"]
+CORS_ALLOWED_ORIGIN_REGEXES = env.list("CORS_ALLOWED_ORIGIN_REGEXES")
 
 from datetime import timedelta
 
@@ -191,7 +260,6 @@ SIMPLE_JWT = {
 }
 
 
-import os
 from firebase_admin import initialize_app, credentials
 from google.auth import load_credentials_from_file
 from google.oauth2.service_account import Credentials
@@ -209,7 +277,7 @@ class CustomFirebaseCredentials(credentials.ApplicationDefault):
             )
 
 # Initialize Firebase
-custom_credentials = CustomFirebaseCredentials(os.getenv('CUSTOM_GOOGLE_APPLICATION_CREDENTIALS'))
+custom_credentials = CustomFirebaseCredentials(env('CUSTOM_GOOGLE_APPLICATION_CREDENTIALS'))
 FIREBASE_MESSAGING_APP = initialize_app(custom_credentials, name='messaging')
 # FCM Django settings
 FCM_DJANGO_SETTINGS = {
@@ -222,17 +290,14 @@ FCM_DJANGO_SETTINGS = {
 
 APPEND_SLASH = False
 
-# #cloudinary settings
-# import cloudinary
-# import cloudinary.uploader
-# import cloudinary.api 
-
-# # Configuration       
-# cloudinary.config(
-#     cloudinary_url=os.getenv("CLOUDINARY_URL"),
-#     secure=True
-# )
-
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api	
+cloudinary.config( 
+  	cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+  	api_key = os.getenv("CLOUDINARY_API_KEY"),
+  	api_secret = os.getenv("CLOUDINARY_API_SECRET")
+)
 # # Define the upload preset details
 # upload_preset_name = "my_preset"
 # upload_preset_options = {

@@ -1,5 +1,6 @@
 from django.db import models
 from core.models import CustomUser
+from shortuuidfield import ShortUUIDField
 from cloudinary.models import CloudinaryField
 
 TARGET_AUDIENCE_CHOICES=['ALL','BCA','BIM','CSIT']
@@ -17,6 +18,7 @@ class Notices(models.Model):
         ('general', 'General'),
         ('seminar', 'Seminar'),
     ]
+    notice_id = ShortUUIDField( primary_key=True,max_length=6)
     title=models.CharField(max_length=200)
     # content=models.TextField()
     issued_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role__in': ['admin', 'teacher']}, default=1)

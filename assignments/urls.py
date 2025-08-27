@@ -1,9 +1,16 @@
 from django.urls import path
-from . import views as AssignmentViews
-urlpatterns=[
-     path('add', AssignmentViews.AddAssignmentView.as_view()),
-    path('get', AssignmentViews.GetAssignmentView.as_view()),
-    path('get/<int:id>', AssignmentViews.GetAssignmentByIdView.as_view()),
-    path('edit/<int:id>', AssignmentViews.UpdateAssignmentView.as_view()),
-    path('delete/<int:id>', AssignmentViews.DeleteAssignmentByIdView.as_view()),
+from .views import (
+    AssignmentCreateView,
+    AssignmentListView,
+    AssignmentDetailView,
+    AssignmentUpdateView,
+    AssignmentDeleteView
+)
+
+urlpatterns = [
+    path('create', AssignmentCreateView.as_view(), name='assignment-create'),
+    path('list', AssignmentListView.as_view(), name='assignment-list'),
+    path('<str:pk>', AssignmentDetailView.as_view(), name='assignment-detail'),
+    path('update/<str:pk>', AssignmentUpdateView.as_view(), name='assignment-update'),
+    path('delete/<str:pk>', AssignmentDeleteView.as_view(), name='assignment-delete'),
 ]

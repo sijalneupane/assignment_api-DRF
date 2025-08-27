@@ -23,8 +23,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
-    path('assignments',include('assignments.urls')),
-    path('notices',include('notices.urls')),
+    path('assignments/',include('assignments.urls')),
+    path('notices/',include('notices.urls')),
+    path('subjects/',include('subjects.urls')),
     path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/schema', SpectacularAPIView.as_view(), name='schema'),

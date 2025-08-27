@@ -41,7 +41,7 @@ class NoticeReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notices
         fields = [
-            'id', 'title','notice_image_URL',
+            'notice_id', 'title','notice_image_URL',
             'issued_by',
             # 'issued_by_name',
             'issued_by_username',

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from shortuuidfield import ShortUUIDField
 from django.contrib.auth.models import BaseUserManager
 
 
@@ -19,6 +19,10 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
+        if user.role in ['admin', 'teacher']:
+            user.is_staff = True
+        if user.role == 'admin':
+            user.is_superuser = True
         user.save(using=self._db)
         return user
 
@@ -33,6 +37,7 @@ class CustomUserManager(BaseUserManager):
 
 # Create your models here.
 class CustomUser(AbstractUser):
+    id=ShortUUIDField(max_length=6, primary_key=True)
     ROLE_CHOICES = (('student','Student'), ('admin','Admin'), ('teacher','Teacher'))
     GENDER_CHOICES = (('male','Male'), ('female','Female'), ('others','Others'))
     name= models.CharField(max_length=250,null=True, blank=True)
@@ -71,6 +76,8 @@ class CustomUser(AbstractUser):
     )
 
     objects = CustomUserManager()  # ✅ Use your custom manager
+    USERNAME_FIELD='email'
+    REQUIRED_FIELDS = ['username', 'role']  # Required fields excluding USERNAME_FIELD
 
     def __str__(self):
         return self.name
