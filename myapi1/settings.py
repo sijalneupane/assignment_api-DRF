@@ -34,7 +34,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['.ngrok-free.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 
 # Application definition
@@ -94,14 +94,6 @@ WSGI_APPLICATION = 'myapi1.wsgi.application'
 
 DATABASES = {
     'default': env.db(),  # Reads the DATABASE_URL environment variable
-    #     {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': env('DB_NAME'),
-    #     'USER': env('DB_USER'),
-    #     'PASSWORD': env('DB_PASSWORD'),
-    #     'HOST': env('DB_HOST'),
-    #     'PORT': env('DB_PORT'),
-    # }
 }
 
 
@@ -194,6 +186,11 @@ SPECTACULAR_SETTINGS = {
         {
             'name': 'Subjects',
             'description': 'Subject management operations - create, read, update, delete subjects'
+        },
+        {
+            'name':'Tokens',
+            'description':'Token generation, validation, and revocation operations. '
+                            'It is used too generate access tokens and refresh tokens.'
         }
     ],
     'SECURITY': [
@@ -212,40 +209,13 @@ SPECTACULAR_SETTINGS = {
         }
     },
 }
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",  # Flutter web or emulator
-#     "http://127.0.0.1:3000",  # Alternate localhost
-#     "http://localhost:8000",  # DRF if accessed from browser
-#     "http://localhost:60608",  # DRF if accessed from browser
-#     "http://127.0.0.1:5500",   # DRF if accessed from browser
-#     # "https://your-ngrok-url.ngrok.io",  # Replace with your actual ngrok link
-# ]
+
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
-
-# CORS_ALLOW_HEADERS = [
-#     "content-type",
-#     "authorization",
-#     "x-csrftoken",
-#     "accept",
-#     "accept-encoding",
-#     "origin",
-#     "user-agent",
-# ]
 CORS_ALLOW_HEADERS = env.list("CORS_ALLOW_HEADERS")
 
-
-# CORS_ALLOW_METHODS = [
-#     'GET',
-#     'POST',
-#     'PUT',
-#     'PATCH',
-#     'DELETE',
-#     'OPTIONS',
-# ]
 CORS_ALLOW_METHODS = env.list("CORS_ALLOW_METHODS")
 
-# CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.ngrok-free\.app$"]
 CORS_ALLOWED_ORIGIN_REGEXES = env.list("CORS_ALLOWED_ORIGIN_REGEXES")
 
 from datetime import timedelta
