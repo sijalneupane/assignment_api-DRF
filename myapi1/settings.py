@@ -35,6 +35,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+# CORS_TRUSTED_ORIGINS = env.list("CORS_TRUSTED_ORIGINS")
 
 
 # Application definition
