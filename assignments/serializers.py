@@ -9,15 +9,15 @@ class MinimalSubjectSerializer(serializers.ModelSerializer):
         model = Subject
         fields = ['subject_id', 'name']
 class AssignmentCreateSerializer(serializers.ModelSerializer):
-    subject_id = serializers.CharField(write_only=True)  # Accept subject_id in request
+    subject_name = serializers.CharField(write_only=True)  # Accept subject_name in request
     
     class Meta:
         model = Assignment
-        fields = ['assignment_id', 'title', 'description', 'subject_id', 'deadline','semester','faculty']
+        fields = ['assignment_id', 'title', 'description', 'subject_name', 'deadline','semester','faculty']
 
     def validate(self, attrs):
         # Ensure all required fields are present
-        required_fields = ['title', 'description', 'subject_id','semester','faculty']
+        required_fields = ['title', 'description', 'subject_name','semester','faculty']
         missing_fields = [field for field in required_fields if field not in attrs]
         
         if missing_fields:
@@ -26,12 +26,11 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        subject_id = validated_data.pop('subject_id')
+        subject_name = validated_data.pop('subject_name')
         try:
-            subject = Subject.objects.get(subject_id=subject_id)
+            subject = Subject.objects.get(name=subject_name)
         except Subject.DoesNotExist:
-           raise NotFound(f"Subject with id '{subject_id}' does not exist.") 
-
+            raise NotFound(f"Subject with name '{subject_name}' does not exist.")
         validated_data['subject'] = subject
         return super().create(validated_data)
 
