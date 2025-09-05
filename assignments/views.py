@@ -22,7 +22,7 @@ from utils.custompermissions import TeacherPermission
             value={
                 "title": "Computer Network Assignment",
                 "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
-                "subject_name": "C programming",
+                "subject_id": "NiNjXhZKMaEcDWtPVH",
                 "semester": "First Semester",
                 "faculty": "BCA"
             },
