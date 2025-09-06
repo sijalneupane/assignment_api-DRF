@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'notices',
     'subjects',
-    'utils'
+    'utils',
+    'fileandimage',
 ]
 
 MIDDLEWARE = [
