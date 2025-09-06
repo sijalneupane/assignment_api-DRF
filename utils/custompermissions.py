@@ -18,3 +18,12 @@ class AdminOnlyPermission(permissions.BasePermission):
         if not (hasattr(request.user, 'role') and request.user.role == 'admin'):
             raise PermissionDenied("Admin role required")
         return True
+
+class AdminOrTeacherPermission(permissions.BasePermission):
+    """Permission class for teachers and admins"""
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated("Authentication required")
+        if not (hasattr(request.user, 'role') and request.user.role in ['teacher', 'admin']):
+            raise PermissionDenied("Teacher or admin role required")
+        return True
