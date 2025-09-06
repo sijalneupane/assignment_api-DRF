@@ -177,7 +177,7 @@ class SubjectDeleteView(generics.DestroyAPIView):
     Delete a subject - only accessible to admin users
     """
     queryset = Subject.objects.all()
-    permission_classes = [AdminOnlyPermission]
+    permission_classes = [AdminOnlyPermission,IsAuthenticated]
 
     def destroy(self, request, *args, **kwargs):
         try:
