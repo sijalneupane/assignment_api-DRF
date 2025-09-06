@@ -14,21 +14,6 @@ from utils.custompermissions import TeacherPermission
     summary="Create new assignment",
     description="Add a new assignment. Only teachers and admins can create assignments.",
     request=AssignmentCreateSerializer,
-    examples=[
-        OpenApiExample(
-            'Assignment Creation Example',
-            summary='Create assignment request',
-            description='Example request body for creating a new assignment',
-            value={
-                "title": "Computer Network Assignment",
-                "description": "Complete exercises 1-10 from chapter 3. Show all your work.",
-                "subject_id": "NiNjXhZKMaEcDWtPVH",
-                "semester": "First Semester",
-                "faculty": "BCA"
-            },
-            request_only=True,
-        )
-    ],
     tags=['Assignments']
 )
 class AssignmentCreateView(generics.CreateAPIView):
@@ -83,9 +68,6 @@ class AssignmentListView(generics.ListAPIView):
             for assignment in assignments:
                 serializer = self.get_serializer(assignment)
                 assignment_data = dict(serializer.data)
-                # assignment_data['subjectName'] = assignment.subject.name
-                # assignment_data['teacher'] = assignment.teacher.name
-                # assignment_data['teacherId'] = assignment.teacher.id
                 data.append(assignment_data)
             return Response({
                 'data': data,
