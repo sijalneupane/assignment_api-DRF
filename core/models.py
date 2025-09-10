@@ -40,6 +40,7 @@ class CustomUser(AbstractUser):
     id=ShortUUIDField(max_length=6, primary_key=True)
     ROLE_CHOICES = (('student','Student'), ('admin','Admin'), ('teacher','Teacher'))
     GENDER_CHOICES = (('male','Male'), ('female','Female'), ('others','Others'))
+    username = models.CharField(max_length=150, unique=True)
     name= models.CharField(max_length=250,null=True, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     gender = models.CharField(max_length=10,choices=GENDER_CHOICES,null=True, blank=True)
