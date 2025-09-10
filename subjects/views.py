@@ -178,6 +178,7 @@ class SubjectDeleteView(generics.DestroyAPIView):
     """
     queryset = Subject.objects.all()
     permission_classes = [AdminOnlyPermission,IsAuthenticated]
+    serializer_class = SubjectSerializer
 
     def destroy(self, request, *args, **kwargs):
         try:
