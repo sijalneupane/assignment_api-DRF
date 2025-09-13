@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError, NotFound, PermissionDenie
 from django.db import transaction
 from .models import Assignment, Subject, CustomDevice
 from core.models import CustomUser
-from .serializers import AssignmentCreateSerializer, AssignmentSerializer
+from .serializers import AssignmentCreateSerializer, AssignmentSerializer,AssignmentUpdateSerializer
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from utils.custompermissions import TeacherPermission
 
@@ -135,7 +135,7 @@ class AssignmentDetailView(generics.RetrieveAPIView):
 class AssignmentUpdateView(generics.UpdateAPIView):
     """API View to update assignments"""
     permission_classes = [permissions.IsAuthenticated, TeacherPermission]
-    serializer_class = AssignmentCreateSerializer
+    serializer_class = AssignmentUpdateSerializer
     queryset = Assignment.objects.all()
     
     def update(self, request, *args, **kwargs):
@@ -144,17 +144,17 @@ class AssignmentUpdateView(generics.UpdateAPIView):
                 assignment = self.get_object()
                 data = request.data.copy()
                 
-                try:
-                    subject = Subject.objects.get(name=data['subjectName'])
-                    data['subject'] = subject.id
-                    data['teacher'] = request.user.id
-                except Subject.DoesNotExist:
-                    raise NotFound("Subject not found")
-                except KeyError:
-                    return Response({
-                        'message': 'subjectName is required'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
+                # try:
+                #     subject = Subject.objects.get(subject_id=data.get('subject_id'))
+                #     data['subject'] = subject.id
+                #     data['teacher'] = request.user.id
+                # except Subject.DoesNotExist:
+                #     raise NotFound("Subject not found")
+                # except KeyError:
+                #     return Response({
+                #         'message': 'subjectName is required'
+                #     }, status=status.HTTP_400_BAD_REQUEST)
+                data['teacher'] = request.user.id
                 serializer = self.get_serializer(assignment, data=data, partial=True)
                 if serializer.is_valid():
                     updated_assignment = serializer.save()
@@ -172,7 +172,8 @@ class AssignmentUpdateView(generics.UpdateAPIView):
             raise NotFound("Assignment not found")
         except Exception as e:
             return Response({
-                'message': 'Failed to update assignment'
+                'message': 'Failed to update assignment',
+                'data': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @extend_schema(
@@ -184,7 +185,7 @@ class AssignmentDeleteView(generics.DestroyAPIView):
     """API View to delete assignments"""
     permission_classes = [permissions.IsAuthenticated, TeacherPermission]
     queryset = Assignment.objects.all()
-    
+    serializer_class = AssignmentSerializer
     def destroy(self, request, *args, **kwargs):
         try:
             with transaction.atomic():

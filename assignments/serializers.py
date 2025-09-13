@@ -35,7 +35,19 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         validated_data['subject'] = subject
         return super().create(validated_data)
 
+class AssignmentUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating assignments (no subject_id required)"""
 
+    class Meta:
+        model = Assignment
+        fields = [
+            'assignment_id', 'title', 'description',
+            'deadline', 'semester', 'faculty'
+        ]
+
+    def validate(self, attrs):
+        # Only check required fields if they are provided
+        return attrs
 
 class AssignmentSerializer(serializers.ModelSerializer):
     subject = MinimalSubjectSerializer(read_only=True)  # Only subject id and name
