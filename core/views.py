@@ -41,14 +41,14 @@ class ShowMsg(APIView):
             'success': True,
             'message': 'success'
         }, status=status.HTTP_200_OK)
-
-class CrerateUser(APIView):
-    @extend_schema(
+@extend_schema(
         tags=['Authentication'],
         summary="Register new user",
         description="Create a new user account with the provided information",
         request=CustomUserSerializer,
-    )
+)
+class CreateUser(APIView):
+    serializer_class=CustomUserSerializer
     def post(self, request):
         serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
@@ -62,13 +62,14 @@ class CrerateUser(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(
+    summary="User login",
+    description="Authenticate user and return access token",
+    request=LoginSerializer,
+    tags=['Authentication']
+)
 class LoginView(APIView):
-    @extend_schema(
-        summary="User login",
-        description="Authenticate user and return access token",
-        request=LoginSerializer,
-        tags=['Authentication']
-    )
+    serializer_class = LoginSerializer
     def post(self, request) :
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():

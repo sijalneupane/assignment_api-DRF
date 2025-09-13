@@ -56,3 +56,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         token['user_id'] = user.id
         return token
+    
+class MiniUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username']
