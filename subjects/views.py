@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import ValidationError, NotFound,bad_request,ParseError
 from django.db import transaction
 from .models import Subject
 from .serializers import SubjectSerializer, SubjectCreateUpdateSerializer
@@ -161,9 +161,14 @@ class SubjectUpdateView(generics.UpdateAPIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
         except Subject.DoesNotExist:
             raise NotFound("Subject not found")
+        except (ValidationError, ParseError) as e:
+            return Response({
+                'message': str(e),
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
-                'message': 'Failed to update subject'
+                'message': 'Failed to update subject',
+                'data': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @extend_schema(
