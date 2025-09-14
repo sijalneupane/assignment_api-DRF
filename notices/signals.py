@@ -17,16 +17,18 @@ def notify_notice_saved(sender, instance, created, **kwargs):
             # Then, get devices for those users
             devices = CustomDevice.objects.filter(user_id__in=user_ids)
 
-        for device in devices:
-            # send_notification(device, instance.title, instance.content)
-            pass
+        # for device in devices:
+        #     # send_notification(device, instance.title, instance.content)
+        #     pass
         devices.send_message(
             Message(
             notification=Notification(
-                title="📢 New Notice"
+                title="📢 New Notice",
+                image=instance.notice_image.file_url if instance.notice_image else None,
+                body=instance.title
             ),
             data={
-                "notice_id": str(instance.id),
+                "notice_id": str(instance.notice_id),
                 "target_audience": str(instance.target_audience),
                 "route": "/getNotice"
             }
