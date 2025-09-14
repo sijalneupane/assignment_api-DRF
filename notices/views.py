@@ -7,9 +7,9 @@ from .models import Notices
 from .serializers import NoticeReadSerializer,NoticeCreateSerializer,NoticeUpdateSerializer
 from drf_spectacular.utils import extend_schema
 from utils.custompermissions import AdminOrTeacherPermission
+from utils.pagination_class import CustomPagination
 from fileandimage.models import FileAndImage
 from fileandimage.views import FileAndImageDeleteView
-from rest_framework import serializers
 @extend_schema(
     summary="Create new notice",
     description="Create a new notice. Only admin and teachers can create notices.",
@@ -60,6 +60,7 @@ class NoticeListView(ListAPIView):
     """List all notices with user details"""
     permission_classes = [IsAuthenticated]
     serializer_class = NoticeReadSerializer
+    pagination_class = CustomPagination
     
     def get_queryset(self):
         return Notices.objects.select_related('issued_by').all().order_by('-updated_at')
@@ -67,6 +68,13 @@ class NoticeListView(ListAPIView):
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.get_queryset()
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                # Call the pagination class method directly with the message parameter
+                return self.paginator.get_paginated_response(serializer.data, 'Notices retrieved successfully')
+            
+            # Fallback if pagination is not used
             serializer = self.get_serializer(queryset, many=True)
             return Response({
                 'data': serializer.data,
