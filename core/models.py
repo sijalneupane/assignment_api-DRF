@@ -46,6 +46,8 @@ class CustomUser(AbstractUser):
     gender = models.CharField(max_length=10,choices=GENDER_CHOICES,null=True, blank=True)
     contact = models.CharField(max_length=10,null=True, blank=True)
     email = models.EmailField(unique=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
     FACULTY_CHOICES = (
         ('ALL', 'All'),
         ('BCA', 'BCA'),
