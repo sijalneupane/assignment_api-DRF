@@ -63,13 +63,23 @@ class FileAndImageRetrieveView(ListAPIView):
     queryset = FileAndImage.objects.all()
     serializer_class = FileAndImageSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
     
     def get_queryset(self):
         return FileAndImage.objects.filter(user=self.request.user)
     
     def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        return GET_SuccessResponse(data=response.data, message="Files retrieved successfully.")
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            # Call the pagination class method directly with the message parameter
+            return self.paginator.get_paginated_response(serializer.data, 'Notices retrieved successfully')
+        
+        # Fallback if pagination is not used
+        serializer = self.get_serializer(queryset, many=True)
+        return GET_SuccessResponse(data=serializer.data, message="Files retrieved successfully.")
+
 
 
 @extend_schema(
