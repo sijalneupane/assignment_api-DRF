@@ -1,0 +1,22 @@
+databases:
+  - name: assignment_api
+    plan: free
+    databaseName: assignment_api
+    user: sijalneupane
+
+services:
+  - type: web
+    plan: free
+    name: myapi1
+    runtime: python
+    buildCommand: './build.sh'
+    startCommand: 'python -m gunicorn myapi1.asgi:application -k uvicorn.workers.UvicornWorker'
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: assignment_api
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
