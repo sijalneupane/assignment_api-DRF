@@ -58,9 +58,9 @@ class FileAndImageSerializer(serializers.ModelSerializer):
             if file.content_type not in image_mime_types:
                 raise ValidationError({"message": "Profile files must be an image."})
 
-        elif file_type == 'assignment':
-            if file.content_type != pdf_mime_type:
-                raise ValidationError({"message": "Assignment files must be a PDF."})
+        # elif file_type == 'assignment':
+        #     if file.content_type != pdf_mime_type:
+        #         raise ValidationError({"message": "Assignment files must be a PDF."})
         attrs['meta_type'] = file.content_type.split('/')[-1]  # Extracting the subtype as meta_type
         return attrs
 
@@ -84,7 +84,7 @@ class FileAndImageSerializer(serializers.ModelSerializer):
                 # Delete old file from Cloudinary
                 destroy(instance.public_id)
 
-                upload_res = upload(file)
+                upload_res = upload(file, folder="assignment_api")
                 instance.meta_type = upload_res['format']
                 instance.public_id = upload_res['public_id']
                 instance.file_url = upload_res['secure_url']

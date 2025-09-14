@@ -8,11 +8,11 @@ from core.models import CustomUser
 class FileType(models.TextChoices):
     PROFILE = 'profile', 'Profile'
     NOTICE = 'notice', 'Notice'
-    ASSIGNMENT = 'assignment', 'Assignment'
+    # ASSIGNMENT = 'assignment', 'Assignment'
 fileType=[ 
         ('profile','Profile'), 
         ('notice','Notice'), 
-        ('assignment','Assignment'), 
+        # ('assignment','Assignment'), 
     ]
 
 # class fileType(Enum):
