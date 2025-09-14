@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -79,6 +80,8 @@ class LoginView(APIView):
             try:
                 user = CustomUser.objects.get(email=email)
                 if check_password(password, user.password):
+                    user.last_login = timezone.now()
+                    user.save()
                     # Use RefreshToken instead of AccessToken for better handling
                     # refresh = RefreshToken.for_user(user)
                     if device_token:
@@ -99,16 +102,15 @@ class LoginView(APIView):
                         }
                     }, status=status.HTTP_200_OK)
                 # return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
-                raise AuthenticationFailed("Invalid password")
+                else :
+                    return Response({"message": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED,)
             except CustomUser.DoesNotExist:
-                raise AuthenticationFailed("Email not found")
+                raise AuthenticationFailed({"message": "Email not found"})
             except Exception as e:
                 return Response({
-                    'message': 'Failed',
-                    'error': str(e)
+                    'message': str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({
-            'message': 'Failed',
-            'error': serializer.errors
+            'message': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 

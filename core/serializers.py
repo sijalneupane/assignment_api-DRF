@@ -42,7 +42,7 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
 
         if not email or not password:
-            raise serializers.ValidationError("Both email and password and device token are required.")
+            raise serializers.ValidationError("Both email and password are required.")
 
         return attrs
 
