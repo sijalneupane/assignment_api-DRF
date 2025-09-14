@@ -66,7 +66,7 @@ class FileAndImageRetrieveView(ListAPIView):
     pagination_class = CustomPagination
     
     def get_queryset(self):
-        return FileAndImage.objects.filter(user=self.request.user)
+        return FileAndImage.objects.filter(user=self.request.user).order_by('-created_at')
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
